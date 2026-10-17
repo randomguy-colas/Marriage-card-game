@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ne"><head><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b2820"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Marriage"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Marriage 🎴</title>
 <style>
 :root{--gold:#b99a60;box-sizing:border-box}
@@ -354,7 +354,7 @@ const gather=pc=>new Promise(r=>{if(pc.iceGatheringState=='complete')return r();
 function p2pRoom(){const r={hd:{},peers:[],on(e,f){r.hd[e]=f},onPeers(){},emit(e,d){const m=JSON.stringify({e,d});r.peers.forEach(q=>{try{if(q.dc.readyState=='open')q.dc.send(m)}catch(_){}});return Promise.resolve()},leave(){r.peers.forEach(q=>{try{q.pc.close()}catch(_){}});r.peers=[]}};return r}
 const hook=(dc,r)=>{dc.onmessage=ev=>{try{const m=JSON.parse(ev.data),f=r.hd[m.e];if(f)f({isMe:false,data:m.d})}catch(_){}}};
 document.addEventListener('change',e=>{const t=e.target;if(!t.classList||!t.classList.contains('bn')||!isHost||!S||!S.seats)return;const i=+t.dataset.i,o=S.seats[i];if(!o||!o.b)return;const x=t.value.trim().replace(/[<>&:]/g,'').slice(0,10);if(!x||x==o.n){render();return}if(S.seats.some((q,j)=>j!=i&&q.n==x)){alert(L('यो नाम पहिल्यै प्रयोगमा छ','This name is already in use'));render();return}const old=o.n;S.lg=(S.lg||[]).map(l=>l.startsWith(old+': ')?x+l.slice(old.length):l);o.n=x;post()});
-document.addEventListener('input',e=>{if(e.target.id=='ntx')NTX=e.target.value});
+document.addEventListener('input',e=>{if(e.target.id=='ntx')NTX=e.target.value;if(e.target.id=='cd')code=e.target.value});
 function nHtml(){const ta=(id,v,ro)=>`<textarea id="${id}" ${ro?'readonly':''} rows="4" style="width:100%;font:2.3cqh monospace;background:#111;color:#d9c48f;border:.3cqh solid #c9a96a;user-select:text;-webkit-user-select:text">${v}</textarea>`,
  cp=`<div class="orow"><button class="op" data-a="ncopy">📋 Copy</button><button class="op" data-a="nshare">📤 Share</button></div>`,st=NSTAT?`<p>${esc(NSTAT)}</p>`:'';
  return modal=='nadd'?`<h2>${L('साथी जोड्नुस्','Add friend')}</h2><p>${L('१. यो कोड साथीलाई पठाउनुस् (Nearby Share / WhatsApp / SMS…)','1. Send this code to your friend (Nearby Share / WhatsApp / SMS…)')}</p>${ta('nout',NOUT||L('कोड बन्दैछ…','Creating code…'),1)}${NOUT?cp:''}<p>${L('२. साथीले फर्काएको कोड यहाँ टाँस्नुस्','2. Paste the code your friend sends back')}</p>${ta('ntx',esc(NTX))}<button class="gb" data-a="nans" style="width:40%">${L('जोड्नुस्','Connect')}</button>${st}`
@@ -493,6 +493,6 @@ document.addEventListener('pointerup',e=>{if(!dr)return;const d=dr;dr=null;if(!d
  
  ord.splice(d.i,1);ord.splice(d.cur,0,o);sel=-1;render()});
 document.addEventListener('pointercancel',()=>{if(dr&&dr.on)render();dr=null});
-let rzT;addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(()=>{try{render()}catch(e){}},150)});addEventListener('orientationchange',()=>setTimeout(()=>{try{render()}catch(e){}},300));
+let rzT;const typing=()=>{const a=document.activeElement;return a&&(a.tagName=='INPUT'||a.tagName=='TEXTAREA')};addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(()=>{if(typing())return;try{render()}catch(e){}},150)});addEventListener('orientationchange',()=>setTimeout(()=>{if(typing())return;try{render()}catch(e){}},300));addEventListener('focusout',()=>setTimeout(()=>{if(!typing()&&V!='game')try{render()}catch(e){}},400));
 render();
 </script><script>if("serviceWorker" in navigator&&/^https?:/.test(location.protocol))addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))</script></body></html>
