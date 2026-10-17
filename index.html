@@ -88,7 +88,11 @@ th,.hd{border:.35vh solid #d0d0d0}td.bad{background:#7a1f1f}td.win{background:#1
 .eb{position:absolute;bottom:3vh;width:37%;height:9vh;border:.35vh solid #ddd;border-radius:.8vh;background:rgba(6,30,20,.85);color:#fff;font:italic 5.4vh Georgia,serif}
 #rot{display:none;position:fixed;inset:0;z-index:99;background:#07170f;color:#c9a14a;flex-direction:column;align-items:center;justify-content:center;font-size:20px;text-align:center}
 @media(orientation:portrait){#rot{display:flex}}
-</style></head><body><div id="app"></div><div id="rot"><div style="font-size:64px">📱↻</div>फोन तेर्सो (horizontal) पार्नुहोस्</div>
+#vc{position:fixed;right:calc(env(safe-area-inset-right,0px) + 9vh);top:calc(env(safe-area-inset-top,0px) + .8vh);z-index:120;display:flex;flex-direction:column;align-items:flex-end;gap:.6vh;font-style:normal}#vc:empty{display:none}
+.vb{border:.3vh solid #c9a96a;background:rgba(0,0,0,.7);color:#fff;border-radius:3vh;padding:.6vh 1.8vh;font:600 3.2vh Georgia,serif;font-style:normal;min-height:6.4vh}.vb.on{border-color:#5ee08a}.vb.mu{border-color:#ff7a6b;background:rgba(80,10,10,.75)}
+.vg{display:flex;gap:.8vh}.vl{display:flex;flex-direction:column;align-items:flex-end;gap:.4vh;pointer-events:none}
+.vp{font:2.5vh Georgia,serif;font-style:normal;background:rgba(0,0,0,.55);color:#d9c48f;border:.25vh solid transparent;border-radius:2vh;padding:.2vh 1.2vh;transition:box-shadow .12s,border-color .12s}.vp.sp{border-color:#5ee08a;color:#fff;box-shadow:0 0 1.2vh #5ee08a}
+</style></head><body><div id="app"></div><div id="vc"></div><div id="rot"><div style="font-size:64px">📱↻</div>फोन तेर्सो (horizontal) पार्नुहोस्</div>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 const $=s=>document.querySelector(s),SU='♠♥♦♣',R=r=>({1:'A',11:'J',12:'Q',13:'K'}[r]||r),cs=c=>c>>4,cr=c=>c&15,esc=s=>String(s).replace(/[<>&]/g,'');
@@ -223,14 +227,14 @@ function start(){S.dl=0;S.id=0;S.gid=rnd(1e9);ordKey='';deal();dealAt=Date.now()
 function mkRoom(code,host){return new Promise((res,rej)=>{
  const H={},conns=[];let up=null,pc=null,peer=null,done=false;
  const fire=(e,d)=>(H[e]||[]).forEach(f=>f({data:d,isMe:false}));
- const api={on(e,f){(H[e]=H[e]||[]).push(f)},onPeers(f){pc=f},
+ const api={on(e,f){(H[e]=H[e]||[]).push(f)},onPeers(f){pc=f},get peer(){return peer},
   emit(e,d){const m={e,d};if(host)conns.forEach(c=>{try{c.open&&c.send(m)}catch(x){}});else if(up&&up.open){try{up.send(m)}catch(x){}}return Promise.resolve()},
-  leave(){done=true;try{peer.destroy()}catch(x){}}};
- peer=host?new Peer('mar-'+code):new Peer();
+  leave(){done=true;try{vStop(true)}catch(x){}try{peer.destroy()}catch(x){}}};
+ peer=host?new Peer('mar-'+code):new Peer();peer.on('call',c=>{try{vOnCall(c)}catch(x){}});
  const tryConn=()=>{if(done||(up&&up.open))return;const c=peer.connect('mar-'+code,{reliable:true,serialization:'json'});up=c;c.on('data',m=>fire(m.e,m.d));c.on('close',()=>{if(up===c)up=null;setTimeout(tryConn,2500)})};
  peer.on('error',er=>{if(!res.ok){try{peer.destroy()}catch(x){}rej(er)}else if(!host&&er.type=='peer-unavailable')setTimeout(tryConn,2500)});
  peer.on('open',()=>{
-  if(host)peer.on('connection',c=>{c.on('open',()=>{conns.push(c);pc&&pc({joined:[c.peer]})});c.on('data',m=>fire(m.e,m.d));c.on('close',()=>{const k=conns.indexOf(c);if(k>=0)conns.splice(k,1)})});
+  if(host)peer.on('connection',c=>{c.on('open',()=>{conns.push(c);pc&&pc({joined:[c.peer]})});c.on('data',m=>fire(m.e,m.d));c.on('close',()=>{const k=conns.indexOf(c);if(k>=0)conns.splice(k,1);fire('drop',{peer:c.peer})})});
   else tryConn();
   res.ok=1;res(api)});
  setTimeout(()=>{if(!res.ok){try{peer.destroy()}catch(x){}rej(new Error('timeout'))}},15000)})}
@@ -240,7 +244,41 @@ async function conn(c,host,quiet){let r=null;if(room&&c!='P2P'){try{room.leave()
  room.on('st',m=>{if(!m.isMe&&!isHost){S=m.data;V=S.ph=='lobby'?'wait':'game';if(S.fresh&&lastDl!=S.gid+'/'+S.dl){lastDl=S.gid+'/'+S.dl;dealAt=Date.now()}svSave();render()}});
  room.on('act',m=>{if(!isHost||m.isMe)return;const s=S.seats.findIndex(x=>x.c==m.data.cid);if(s>=0)act(s,m.data.a)});
  room.on('join',m=>{if(!isHost||m.isMe||S.ph!='lobby'||S.seats.length>=5)return;if(!S.seats.some(x=>x.c==m.data.cid)){const used=S.seats.map(x=>x.n);let n0=String(m.data.n).slice(0,12);if(!n0||n0=='Player'||used.includes(n0))n0=nmFor(S.seats.length,used);S.seats.push({n:n0,c:m.data.cid});post()}});
- room.onPeers(c=>{if(isHost&&S&&c.joined.length)post()});return true}
+ room.on('vj',m=>{if(!isHost||!m.data||!m.data.id)return;vlist=vlist.filter(x=>x.cid!=m.data.cid&&x.id!=m.data.id);vlist.push({id:String(m.data.id),cid:m.data.cid,m:m.data.m?1:0});room.emit('vl',vlist);vSync()});
+ room.on('vx',m=>{if(!isHost||!m.data)return;vlist=vlist.filter(x=>x.cid!=m.data.cid);room.emit('vl',vlist);vSync()});
+ room.on('drop',m=>{if(!isHost)return;const n=vlist.length;vlist=vlist.filter(x=>x.id!=m.data.peer);if(vlist.length!=n){room.emit('vl',vlist);vSync()}});
+ room.on('vl',m=>{if(isHost||!Array.isArray(m.data))return;vlist=m.data;vSync()});
+ room.onPeers(c=>{if(isHost&&S&&c.joined.length){post();if(vlist.length)room.emit('vl',vlist)}});return true}
+/* ---- Voice chat: mesh of PeerJS media calls. Who-is-in-voice list travels over the existing room channel (host relays). ---- */
+let vs=null,vm=false,vcalls={},vlist=[],vlev={},vctx=null,vhtml='';
+const vme=()=>room&&room.peer&&room.peer.id;
+function vOnCall(c){if(!vs)return c.close();const o=vcalls[c.peer];if(o){delete vcalls[c.peer];try{o.close()}catch(e){}}c.answer(vs);vAttach(c)}
+function vAttach(c){const id=c.peer;vcalls[id]=c;c.on('stream',st=>{c._got=1;vPlay(id,st)});c.on('close',()=>vGone(id,c));c.on('error',()=>vGone(id,c))}
+function vCall(id){let c=null;try{c=room.peer.call(id,vs)}catch(e){}if(!c)return;vAttach(c);setTimeout(()=>{if(vcalls[id]===c&&!c._got){try{c.close()}catch(e){}vSync()}},12000)}
+function vGone(id,c){if(vcalls[id]!==c)return;delete vcalls[id];delete vlev[id];const a=document.getElementById('va-'+id);if(a){a.srcObject=null;a.remove()}vcRender()}
+function vPlay(id,st){let a=document.getElementById('va-'+id);if(!a){a=document.createElement('audio');a.id='va-'+id;a.autoplay=true;a.setAttribute('playsinline','');a.style.display='none';document.body.appendChild(a)}a.srcObject=st;const p=a.play();if(p&&p.catch)p.catch(()=>{});vLevel(id,st)}
+function vLevel(k,st){try{vctx=vctx||new(window.AudioContext||window.webkitAudioContext)();if(vctx.resume)vctx.resume();const an=vctx.createAnalyser();an.fftSize=256;vctx.createMediaStreamSource(st).connect(an);vlev[k]={an,b:new Uint8Array(an.frequencyBinCount)}}catch(e){}}
+function vSync(){if(vs&&room&&room.peer){const me=vme();if(me)vlist.forEach(x=>{if(x.id!=me&&me<x.id&&!vcalls[x.id])vCall(x.id)})}vcRender()}
+function vAnnounce(){const e={id:vme(),cid,m:vm?1:0};if(isHost){vlist=vlist.filter(x=>x.cid!=cid);vlist.push(e);room.emit('vl',vlist)}else room.emit('vj',e)}
+async function vStart(){if(vs||!room||!room.peer)return;
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return alert(L('यो browser मा mic चल्दैन। Chrome प्रयोग गर्नुस्।','Microphone is not supported in this browser. Please use Chrome.'));
+ let st;try{st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false})}catch(e){return alert(L('Mic को अनुमति दिनुहोस् (Phone/Browser Settings → Site settings → Microphone)।','Please allow microphone access (Phone/Browser Settings → Site settings → Microphone).'))}
+ if(!room||!room.peer){st.getTracks().forEach(t=>t.stop());return}
+ vs=st;vm=false;vLevel('me',vs);vAnnounce();vSync()}
+function vMute(){if(!vs)return;vm=!vm;vs.getAudioTracks().forEach(t=>t.enabled=!vm);vAnnounce();vcRender()}
+function vStop(silent){const had=!!vs;Object.values(vcalls).forEach(c=>{try{c.close()}catch(e){}});vcalls={};
+ document.querySelectorAll('audio[id^="va-"]').forEach(a=>{a.srcObject=null;a.remove()});
+ if(vs)vs.getTracks().forEach(t=>t.stop());vs=null;vm=false;vlev={};
+ if(silent)vlist=[];else if(had&&room){if(isHost){vlist=vlist.filter(x=>x.cid!=cid);room.emit('vl',vlist)}else room.emit('vx',{cid})}
+ vcRender()}
+function vcRender(){const el=$('#vc');if(!el)return;
+ const ok=mode=='online'&&room&&code!='P2P'&&room.peer&&(V=='lobby'||V=='wait'||V=='game');let h='';
+ if(ok){const me=vme(),nmOf=c=>{const s=S&&S.seats&&S.seats.find(x=>x.c==c);return s?s.n:'…'};
+  h=vs?`<div class="vg"><button class="vb ${vm?'mu':'on'}" data-vc="mute">${vm?'🔇':'🎤'}</button><button class="vb" data-vc="leave">✕</button></div>`:`<button class="vb" data-vc="join">🎙 ${L('बोल्नुस्','Voice')}${vlist.length?' · '+vlist.length:''}</button>`;
+  if(vlist.length)h+=`<div class="vl">${vlist.map(x=>`<span class="vp" data-vid="${x.id==me?'me':esc(x.id)}">${x.m?'🔇':'🎙'} ${esc(nmOf(x.cid))}</span>`).join('')}</div>`}
+ if(h!==vhtml){vhtml=h;el.innerHTML=h}}
+setInterval(()=>{const el=$('#vc');if(!el)return;el.querySelectorAll('.vp').forEach(p=>{const l=vlev[p.dataset.vid];let on=false;if(l&&!(p.dataset.vid=='me'&&vm)){try{l.an.getByteTimeDomainData(l.b);let q=0;for(let i=0;i<l.b.length;i++){const d=l.b[i]-128;q+=d*d}on=Math.sqrt(q/l.b.length)>6}catch(e){}}p.classList.toggle('sp',on)})},150);
+document.addEventListener('click',e=>{const b=e.target.closest('[data-vc]');if(!b)return;const a=b.dataset.vc;if(a=='join')vStart();else if(a=='mute')vMute();else if(a=='leave')vStop()});
 function share(){const t='Marriage 🎴 — Room code: '+code+'\n'+(LINK||L('Marriage खोलेर Join Room मा यो कोड हाल्नुस्','Open Marriage and enter this code in Join Room'));if(navigator.share)navigator.share({text:t}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>alert(L('कपी भयो — साथीलाई पठाउनुस्','Copied — send it to your friend')))}
 /* ---- free-form hand tray ---- */
 function inTz(e){const z=$('#tz');if(!z)return false;const r=z.getBoundingClientRect();return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom}
@@ -334,7 +372,7 @@ const avc=(i,sz)=>`<div class="avc ${S&&S.ph&&S.ph!='end'&&S.ph!='lobby'&&i==S.t
 const rim=`<svg class="rim" viewBox="0 0 2340 300" preserveAspectRatio="none"><path d="M0 250 C 500 160 1500 135 2340 125 L2340 0 L0 0 Z" fill="rgba(120,150,140,.18)"/></svg>`;
 function render(){const snap=snapFx(),A=$('#app'),rt=$('#rot'),pp0=$('.pop2'),ps0=pp0?pp0.scrollTop:0,ae=document.activeElement,fid=(ae&&ae.id)||'',fi=ae&&ae.classList&&ae.classList.contains('bn')?ae.dataset.i:null,fs=ae&&typeof ae.selectionStart=='number'?[ae.selectionStart,ae.selectionEnd]:null;if(rt&&rt.lastChild)rt.lastChild.textContent=L('फोन तेर्सो (horizontal) पार्नुहोस्','Please rotate your phone (landscape)');const l0=$('.lgs'),keep=l0?{t:l0.scrollTop,b:l0.scrollHeight-l0.scrollTop-l0.clientHeight<40}:null;if(S&&S.id!==rid){rid=S.id;sel=-1;pm=null;PS=new Set()}let h;
  if(V=='game'&&S&&S.ph!='lobby')h=S.ph=='end'?endView():gameView();else h=menuBase()+popHtml();
- A.style.setProperty('--b1',BKS[CFG().back][0]);A.style.setProperty('--b2',BKS[CFG().back][1]);A.innerHTML=h+(modal?modalHtml():'');const l1=$('.lgs');if(l1)l1.scrollTop=(!keep||keep.b)?l1.scrollHeight:keep.t;const pp1=$('.pop2');if(pp1){pp1.scrollTop=ps0;if(fid||fi!=null){const e2=fi!=null?document.querySelector('.bn[data-i="'+fi+'"]'):document.getElementById(fid);if(e2){try{e2.focus({preventScroll:true});if(fs)e2.setSelectionRange(fs[0],fs[1])}catch(x){}}}}fxRun(snap);sortRun()}
+ A.style.setProperty('--b1',BKS[CFG().back][0]);A.style.setProperty('--b2',BKS[CFG().back][1]);A.innerHTML=h+(modal?modalHtml():'');const l1=$('.lgs');if(l1)l1.scrollTop=(!keep||keep.b)?l1.scrollHeight:keep.t;const pp1=$('.pop2');if(pp1){pp1.scrollTop=ps0;if(fid||fi!=null){const e2=fi!=null?document.querySelector('.bn[data-i="'+fi+'"]'):document.getElementById(fid);if(e2){try{e2.focus({preventScroll:true});if(fs)e2.setSelectionRange(fs[0],fs[1])}catch(x){}}}}fxRun(snap);sortRun();vcRender()}
 function menuBase(){return `<div class="mbg"></div><div class="avbig">${CFG().av||'👧'}</div><div class="mi"><div><span>Name:</span> <input id="nm" value="${esc(nm)}"></div><div><span>Coins:</span> ${PF.coins}</div><div><span>Games Played:</span> ${PF.games}</div></div>
  <button class="bar" style="top:38.5vh" data-a="single">👤&nbsp; Single Player</button><button class="bar" style="top:50.5vh" data-a="online">🌐&nbsp; Online Room</button><button class="bar" style="top:62.5vh" data-a="nearby">📡&nbsp; Nearby (Wi-Fi)</button>${SV?`<button class="bar" style="top:74.5vh;border-color:#ffd75e" data-a="resume">▶&nbsp; ${L('खेलमा फर्कनुस्','Resume game')}</button>`:''}
  <div class="lgo">🎴</div><div class="scr">marriage</div><div class="ver">version: 3.4</div>
