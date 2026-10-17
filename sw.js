@@ -1,6 +1,6 @@
 // Marriage app service worker — works offline after first visit.
 // To publish an update: change VERSION below, then upload the folder again.
-const VERSION = 'marriage-v1';
+const VERSION = 'marriage-v2';
 const FILES = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
 self.addEventListener('install', e => {
