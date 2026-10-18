@@ -1,30 +1,14 @@
-// Marriage app service worker — works offline after first visit.
-// To publish an update: change VERSION below, then upload the folder again.
-const VERSION = 'marriage-v2';
-const FILES = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
-
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
-});
-self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  if (url.origin !== location.origin) return;           // never touch other sites (STUN, etc.)
+/* Marriage service worker — network-first so updates always show up; cache is only the offline fallback. */
+const V='marriage-3.6.1';
+self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(V).then(c=>c.addAll(['./','manifest.json','icon-192.png'])).catch(()=>{}))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
+self.addEventListener('fetch',e=>{
+  const r=e.request,u=new URL(r.url);
+  if(r.method!=='GET'||u.origin!==location.origin||u.search.indexOf('_=')>=0)return;
   e.respondWith(
-    caches.match(req, { ignoreSearch: true }).then(hit => {
-      const fresh = fetch(req).then(res => {
-        if (res && res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); }
-        return res;
-      }).catch(() => hit || caches.match('index.html'));
-      return hit || fresh;                               // show cached at once, refresh in background
-    })
+    fetch(u.href,{cache:'no-store'}).then(res=>{
+      if(res&&res.ok){const c=res.clone();caches.open(V).then(x=>x.put(r,c)).catch(()=>{})}
+      return res;
+    }).catch(()=>caches.match(r).then(m=>m||caches.match('./')))
   );
 });
