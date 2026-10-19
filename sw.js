@@ -1,5 +1,5 @@
 /* Marriage service worker — network-first so updates always show up; cache is only the offline fallback. */
-const V='marriage-3.7.0';
+const V='marriage-3.8.0';
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(V).then(c=>c.addAll(['./','manifest.json','icon-192.png'])).catch(()=>{}))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{
