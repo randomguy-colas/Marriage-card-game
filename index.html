@@ -83,6 +83,9 @@ input{user-select:text;-webkit-user-select:text;background:transparent;border:0;
 .ov{position:absolute;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:90}
 .pop2{background:#000;border:.3cqh solid #fff;width:60%;max-height:88cqh;overflow:auto;padding:3cqh 4cqh;display:flex;flex-direction:column;gap:2cqh;align-items:center}
 .pop2 h2{margin:0;color:#f0c94a;font-size:5cqh;font-weight:400}.pop2 ol{font-size:3.4cqh;margin:0;padding-left:4cqh;font-style:normal}
+.fe{position:absolute;left:37%;right:1.5%;top:59.6cqh}.fr+.fr{margin-top:.6cqh}.fl{font:700 2.5cqh Arial,sans-serif;font-style:normal;margin-bottom:.4cqh;white-space:nowrap}.fl.a{color:#ffd978}.fl.b{color:#9be8c0}
+.fg{display:flex;flex-wrap:wrap;gap:1.5cqh;align-items:flex-start}.gp{display:flex;padding:.5cqh .7cqh;border:.3cqh solid rgba(255,255,255,.3);border-radius:1cqh}.gp.sh{background:rgba(255,200,70,.16);border-color:rgba(255,205,90,.65)}.gp.sh.tn{border-color:#ffd978;box-shadow:0 0 0 .25cqh #ffd978 inset}.gp.hd{background:rgba(60,200,140,.16);border-color:rgba(130,235,185,.6)}.gp.dc{background:rgba(0,0,0,.25);border-style:dashed}
+.fe .c{width:6cqh;margin-left:-2.3cqh;flex:0 0 auto}.fe .gp>.c:first-child{margin-left:0}.fe .c.bg{padding:.45cqh .6cqh}.fe .c.bg b{font-size:2.7cqh}.fe .c.bg u{font-size:2.3cqh}
 .endbg{position:absolute;inset:0;background:linear-gradient(#0d1814 0 8%,transparent 8%),radial-gradient(ellipse at 50% 75%,#2f8460 0,#17483a 55%,#0a1f18 100%)}
 .et{position:absolute;left:12.4%;top:1.5cqh;width:79%;font:700 5cqh Arial,sans-serif;font-style:normal;text-align:center;letter-spacing:.1cqh}
 table{position:absolute;left:12.4%;top:9cqh;width:79%;border-collapse:collapse;font-style:normal}
@@ -133,7 +136,7 @@ html,body{width:100%;height:100%}
 </style></head><body><div id="app"></div><div id="vc"></div><div id="xb"></div><div id="rot"><div style="font-size:64px">📱↻</div>फोन तेर्सो (horizontal) पार्नुहोस्</div>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-const BUILD='3.6.1';
+const BUILD='3.7.0';
 const $=s=>document.querySelector(s),SU='♠♥♦♣',R=r=>({1:'A',11:'J',12:'Q',13:'K'}[r]||r),cs=c=>c>>4,cr=c=>c&15,esc=s=>String(s).replace(/[<>&]/g,'');
 const AW=()=>{const a=document.getElementById('app');return a&&a.clientWidth||window.innerWidth},AH=()=>{const a=document.getElementById('app');return a&&a.clientHeight||window.innerHeight};
 const rnd=n=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n};
@@ -629,13 +632,27 @@ function A_game(v,t,anim,mine,sn,top,canP,tops,floor,lgs,dk,tray,oh){
  ${canTun?`<button class="tnb" data-a="tun">${pm=='tun'?'TUNELA ✓':L('🎴 TUNELA देखाउ','🎴 Show TUNELA')}</button>`:''}
  <div class="hint">${hint}</div><button class="gear" data-a="set">⚙</button><div id="hd" class="${anim?'deal':''}" style="--cw:${geo().cw}px">${tray}</div>${FXH}`}
 const fq=c=>cs(c)==4?'<i class="c bg r"><b>★</b><u style="font-size:1.9cqh">JOKER</u></i>':`<i class="c bg ${cs(c)==1||cs(c)==2?'r':''}"><b>${R(cr(c))}</b><u>${SU[cs(c)]}</u></i>`;
+/* अन्तिम हातका पत्ती मिलेका समूहमा बाँड्छ (वाइल्ड/माल पत्ती खाली ठाउँमा राखिन्छ) */
+function grpHand(h,t){if(S.dub[t]){const m={},o=[],lo=[];h.forEach(c=>m[c]=(m[c]||0)+1);Object.keys(m).forEach(k=>{let n=m[k];while(n>=2){o.push([+k,+k]);n-=2}if(n)lo.push(+k)});return lo.length?o.concat([lo]):o}
+ const wl=[],cnt={};h.forEach(c=>wild(c,t)?wl.push(c):cnt[c]=(cnt[c]||0)+1);let steps=0;const out=[];
+ const rec=w=>{if(++steps>60000)return false;const ks=Object.keys(cnt).map(Number).filter(k=>cnt[k]>0).sort((a,b)=>a-b);
+  if(!ks.length){if(w==0)return true;if(w>=3){out.push(Array(w).fill('W'));return true}return false}
+  const c=ks[0],s=c>>4,r=c&15,go=(rem,wu,arr)=>{if(wu>w)return false;rem.forEach(k=>cnt[k]--);out.push(arr);const ok=rec(w-wu);if(!ok)out.pop();rem.forEach(k=>cnt[k]++);return ok};
+  for(let n=Math.min(cnt[c],3);n>=1;n--)if(n!=2&&go(Array(n).fill(c),3-n,Array(n).fill(c).concat(Array(3-n).fill('W'))))return true;
+  const o=[0,1,2,3].filter(x=>x>s&&cnt[x*16+r]>0);
+  for(let m=0;m<1<<o.length;m++){const rem=[c];o.forEach((x,i)=>m>>i&1&&rem.push(x*16+r));if(rem.length>=2&&rem.length<=3&&go(rem,3-rem.length,rem.concat(Array(3-rem.length).fill('W'))))return true}
+  for(let L=3;L<=13;L++){let rem=[c],arr=[c],wu=0;for(let i=1;i<L;i++){const rr=r+i;if(rr>14){wu=99;break}const k=s*16+(rr==14?1:rr);if(cnt[k]>0&&!rem.includes(k)){rem.push(k);arr.push(k)}else{wu++;arr.push('W')}}if(go(rem,wu,arr))return true}
+  if(r==1)for(let L=3;L<=13;L++){let rem=[c],arr=[c],wu=0;for(let i=1;i<L;i++){const k=s*16+(14-i);if(cnt[k]>0&&!rem.includes(k)){rem.push(k);arr.push(k)}else{wu++;arr.push('W')}}if(go(rem,wu,arr.reverse()))return true}
+  return false};
+ if(!rec(wl.length))return[h.slice().sort((a,b)=>a-b)];
+ return out.map(g=>g.map(x=>x=='W'?wl.pop():x))}
 function endView(){const v=me(),w=S.w,m=S.mal,ms=cs(m),mr=cr(m);profile(v);const bal=S.bk?S.bk[v]:PF.coins,N=S.seats.length,order=[v,...[...Array(N-1)].map((_,k)=>(v+1+k)%N)],f=c=>big(c,'xs'),cell=(n,p)=>n?`*${n}=${p}`:'',mn=Math.min(...S.res.map(r=>r.n));
  const rows=order.map(i=>{const o=S.res[i],b=o.b||{},sn=S.seen[i],rc=i==w?'win':o.n==mn?'bad':'';return `<tr><td class="l">${i==v?'Player':esc(S.seats[i].n)}${sn?'':'*'}${S.bk?` <small style="font-size:70%;white-space:nowrap">🪙${S.bk[i]}</small>`:''}</td><td>${sn?cell(o.t,b.t):''}</td><td>${sn?cell(o.p,b.p):''}</td><td>${sn?cell(o.j,b.j):''}</td><td>${sn?cell(o.a,b.a):''}</td><td>${sn?cell(o.mar,b.mar):''}</td><td>${sn?cell(o.tn,b.tn):''}</td><td>${sn?cell(o.m,b.m):''}</td><td class="${rc}">${i==w?'WON! '+o.n:`${o.pts}-${o.pts-o.n}=${o.n}`}</td></tr>`}).join('');
- const n=S.res[v].n,cards=[...S.shown[w].flatMap(x=>x.m),...S.h[w]];
+ const n=S.res[v].n,shG=(S.shown[w]||[]).map(x=>({m:x.m,tn:x.tn})),hdG=grpHand(S.h[w],w),gp=(a,c='')=>`<div class="gp ${c}">${a.map(fq).join('')}</div>`;
  return `<div class="endbg"></div><div class="et">GAME COMPLETE :: SCORES (CENTER COLLECTION)${S.df?' · DUBLEE':''}</div>
  <table><tr><th>Players</th><th>Tiplu<br>${f(m)}</th><th>Chaplu<br>${f(ms*16+mr%13+1)}</th><th>Duplu<br>${f(ms*16+(mr+11)%13+1)}</th><th>Alter<br>${f((3-ms)*16+mr)}</th><th>Marriage<br>${f(ms*16+(mr+11)%13+1)}${f(m)}${f(ms*16+mr%13+1)}</th><th>Tunnella</th><th>Putali<br>${f(65)}</th><th>Result</th></tr>${rows}</table>
  <div class="coins">🪙${S.bk?' <small style="font-size:60%">'+L('यो सिजन','this season')+'</small>':''}<br>You had ${bal-n} Coins<br>You ${n>=0?'Won':'Lost'} ${Math.abs(n)} Coins<br>Now you have ${bal} Coins</div>
- <div class="ft">GAME FINISHED CARDS</div><div class="fin">${(()=>{const a=[...cards.map(fq),'<i class="c bk"></i>'],k=Math.ceil(a.length/2);return `<div>${a.slice(0,k).join('')}</div><div>${a.slice(k).join('')}</div>`})()}</div><div class="key">${L('* नामपछि = माल नदेखेको (अङ्क ०, जित्नेलाई १० तिर्छ) · *१=३ → १ पत्ती × ३ अङ्क · हरियो = जित्ने · रातो = सबैभन्दा धेरै हार्ने','* after a name = did not see the maal (scores 0, pays winner 10) · *1=3 → 1 card × 3 pts · green = winner · red = biggest loser')}<br>${L('Result = (आफ्नो अङ्क × खेलाडी संख्या) − सबैको जम्मा अङ्क − तिर्नुपर्ने सिक्का · Chaplu = माथिको, Duplu = तलको, Alter = उही नम्बर र रङ्ग','Result = (your pts × players) − total of all pts − coins to pay · Chaplu = above, Duplu = below, Alter = same number and colour')}</div>
+ <div class="fe"><div class="fr"><div class="fl a">${L('१. सुरुमा टेबुलमा देखाएको पत्ती','1. SHOWN ON TABLE AT START')}</div><div class="fg">${shG.map(x=>gp(x.m,'sh'+(x.tn?' tn':''))).join('')}</div></div><div class="fr"><div class="fl b">${L('२. अन्तिम खेल (मिलेका पत्ती) · घोप्टो = फाल्तु पत्ती','2. FINAL GAME (ARRANGED CARDS) · FACE DOWN = THROWN CARD')}</div><div class="fg">${hdG.map(x=>gp(x,'hd')).join('')}<div class="gp dc"><i class="c bk"></i></div></div></div></div><div class="key">${L('* नामपछि = माल नदेखेको (अङ्क ०, जित्नेलाई १० तिर्छ) · *१=३ → १ पत्ती × ३ अङ्क · हरियो = जित्ने · रातो = सबैभन्दा धेरै हार्ने','* after a name = did not see the maal (scores 0, pays winner 10) · *1=3 → 1 card × 3 pts · green = winner · red = biggest loser')}<br>${L('Result = (आफ्नो अङ्क × खेलाडी संख्या) − सबैको जम्मा अङ्क − तिर्नुपर्ने सिक्का · Chaplu = माथिको, Duplu = तलको, Alter = उही नम्बर र रङ्ग','Result = (your pts × players) − total of all pts − coins to pay · Chaplu = above, Duplu = below, Alter = same number and colour')}</div>
  ${mode=='online'?`<button class="eb" style="left:12.4%;width:27%" data-a="new" ${isHost?'':'disabled'}>${isHost?'Play Again':'⏳'}</button><button class="eb" style="left:41%;width:27%" data-a="lobby" ${isHost?'':'disabled'}>🏠 Lobby</button><button class="eb" style="left:69.6%;width:27%" data-a="home">Quit</button>`:`<button class="eb" style="left:12.4%" data-a="new" ${isHost?'':'disabled'}>${isHost?'Play Again':L('होस्टले अर्को सुरु गर्छ','Host starts the next game')}</button><button class="eb" style="left:53%" data-a="home">Quit Playing</button>`}`}
 
 /* ---- floor fan: circle a finger on the floor — cards spread open following the finger and stay open; tap the floor to close ---- */
@@ -757,4 +774,4 @@ function updBanner(){let el=document.getElementById('upd');if(!el){el=document.c
 document.addEventListener('click',e=>{if(!e.target.closest('#upd'))return;if(V=='game'&&S&&S.ph&&S.ph!='end')ask(L('अपडेट गर्दा चलिरहेको खेल बन्द हुन्छ। गर्ने?','Updating will end the current game. Continue?'),doUpd);else doUpd()});
 setTimeout(()=>checkUpd(false),3000);setInterval(()=>checkUpd(false),300000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')checkUpd(false)});
 render();
-</script><script>if("serviceWorker\" in navigator&&/^https?:/.test(location.protocol))addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{try{r.update()}catch(e){}}).catch(()=>{}))</script></body></html>
+</script><script>if("serviceWorker" in navigator&&/^https?:/.test(location.protocol))addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{try{r.update()}catch(e){}}).catch(()=>{}))</script></body></html>
