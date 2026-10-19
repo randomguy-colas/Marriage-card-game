@@ -17,7 +17,13 @@ input{user-select:text;-webkit-user-select:text;background:transparent;border:0;
 .emb{position:absolute;left:45cqw;top:24cqh;width:26cqh;height:20cqh;border:.3cqh solid rgba(255,255,255,.06);border-radius:50%}
 .tp{position:absolute;top:1.3cqh;display:flex;gap:1.3cqh;width:19%}
 .avc{flex:0 0 var(--sz);width:var(--sz);height:var(--sz);border-radius:50%;border:1.1cqh solid #a98f5c;background:#cfcfcf;display:flex;align-items:center;justify-content:center;font-size:calc(var(--sz)*.55);font-style:normal}
-.avc.t{box-shadow:0 0 0 .6cqh #ffd75e,0 0 2.5cqh #ffd75e}
+.avc.t{border-color:#3ddc6c;animation:tpulse 1.2s ease-in-out infinite}
+.avc.t::before{content:"";position:absolute;inset:-1.9cqh;border-radius:50%;pointer-events:none;background:conic-gradient(from 0deg,rgba(61,220,108,0) 0 35%,#3ddc6c 80%,#c8ffd9 100%);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - .9cqh),#000 calc(100% - .8cqh));mask:radial-gradient(farthest-side,transparent calc(100% - .9cqh),#000 calc(100% - .8cqh));animation:trn .9s linear infinite;filter:drop-shadow(0 0 .8cqh #3ddc6c)}
+@keyframes trn{to{transform:rotate(360deg)}}
+@keyframes tpulse{0%,100%{box-shadow:0 0 1cqh #3ddc6c}50%{box-shadow:0 0 3.4cqh .8cqh #3ddc6c}}
+.nm.tn2{color:#7dffa5;text-shadow:0 0 1.4cqh #3ddc6c;font-weight:700}
+.yt{position:absolute;left:calc(100% + 1.2cqh);top:50%;transform:translateY(-50%);white-space:nowrap;background:#3ddc6c;color:#042b12;font:700 3cqh Georgia,serif;font-style:normal;padding:.5cqh 1.6cqh;border-radius:3cqh;box-shadow:0 0 2cqh #3ddc6c;animation:ytb 1s ease-in-out infinite}
+@keyframes ytb{50%{transform:translateY(-50%) scale(1.08)}}
 .inf{min-width:0}.nm{font-size:4cqh;color:#e8e2d2;line-height:1.1;white-space:nowrap}
 .mr{display:flex;flex-direction:column;gap:.3cqh;margin-top:1.1cqh}
 .ms{background:#fff;color:#111;font:700 3.3cqh/1 Georgia,serif;font-style:normal;padding:.2cqh .8cqh;letter-spacing:.1cqh;white-space:nowrap;width:max-content}.ms.tn{outline:.3cqh solid #ffd75e}
@@ -613,7 +619,7 @@ function gameView(){
  const N=S.seats.length,v=me(),t=S.turn,anim=S.fresh&&Date.now()-dealAt<2600;if(anim)setTimeout(render,2750-(Date.now()-dealAt));
  const h=S.h[v]||[],oh=myHand(v),mine=t==v&&S.ph!='end'&&!anim,sn=!!S.seen[v]&&!S.pend[v],top=S.disc[S.disc.length-1],gs=CFG().hints?seqs(h).use:new Set();
  VW=v;ORDER=[...Array(N-1)].map((_,k)=>(v+1+k)%N);
- const tops=ORDER.map((i,k)=>`<div class="tp" style="left:${14.1+k*19.05}%">${avc(i,'16.7cqh')}<div class="inf"><div class="nm" ${S.seats[i].b&&isHost?`data-a="rn" data-v="${i}" style="cursor:pointer"`:''}>${esc(S.seats[i].n)}${S.seen[i]?' 👁':''}${S.seats[i].b&&isHost?'<small style="opacity:.45;font-size:2.4cqh"> ✎</small>':''}</div>${mode=='online'&&S.seats[i].c&&!S.seats[i].b?'<div class="st2"><i class="lat" data-om="'+esc(S.seats[i].c)+'">'+msOf(S.seats[i].c)+'</i></div>':''}<div class="mr">${strips(i)}</div></div></div>`).join('');
+ const tops=ORDER.map((i,k)=>`<div class="tp" style="left:${14.1+k*19.05}%">${avc(i,'16.7cqh')}<div class="inf"><div class="nm ${i==t&&S.ph!='end'?'tn2':''}" ${S.seats[i].b&&isHost?`data-a="rn" data-v="${i}" style="cursor:pointer"`:''}>${esc(S.seats[i].n)}${S.seen[i]?' 👁':''}${S.seats[i].b&&isHost?'<small style="opacity:.45;font-size:2.4cqh"> ✎</small>':''}</div>${mode=='online'&&S.seats[i].c&&!S.seats[i].b?'<div class="st2"><i class="lat" data-om="'+esc(S.seats[i].c)+'">'+msOf(S.seats[i].c)+'</i></div>':''}<div class="mr">${strips(i)}</div></div></div>`).join('');
  const prev=S.disc.slice(-12),base=S.dcn-prev.length;
  const canP=mine&&S.ph=='draw'&&S.dcn>=1&&!(!RL('wp')&&S.seen[v]&&S.disc.length&&wild(S.disc[S.disc.length-1],v));
  const pp=(S.dpos||[]).slice(-prev.length),floor=prev.map((c,i)=>{let p=pp.length==prev.length?pp[i]:null;if(!p){const q=(c*2654435761+(base+i)*40503)>>>0;p={x:(q%1000)/1000,y:((q>>>10)%1000)/1000,r:((q>>>20)%50)-25}}return `<div class="fc ${i==prev.length-1?'new'+(canP?' hl':(S.ph=='disc'||S.ph=='post'?' dd':'')):'old'}" style="${anim?'visibility:hidden;':''}left:calc((100% - 26cqh)*${p.x.toFixed(3)} + 6cqh);top:calc((100% - 35cqh)*${p.y.toFixed(3)} + 5cqh);transform:rotate(${p.r}deg);z-index:${i==prev.length-1?99:i}">${big(c)}</div>`}).join('');
@@ -628,7 +634,7 @@ function A_game(v,t,anim,mine,sn,top,canP,tops,floor,lgs,dk,tray,oh){
  return `${felt()}${rim}<div class="emb"></div><div class="wm">marriage</div>${tops}
  <div class="lgs">${lgs}</div><div class="tz" id="tz" ${mine&&S.ph=='draw'&&S.dcn>=1?'data-a="dc"':''}>${floor}<div class="tl">${L('⬇ यहाँ छोड्नुस् — Card throwing area','⬇ Drop here — Card throwing area')}</div></div>${dk}
  ${sn&&S.mal!=null?`<div class="mal2"><span>MAAL</span>${big(S.mal,'w')}</div>`:''}<button class="sortb" data-a="sort">SORT</button>
- <div class="mym"><div class="mr">${strips(v)}</div></div><div class="mea">${avc(v,'11cqh')}</div>
+ <div class="mym"><div class="mr">${strips(v)}</div></div><div class="mea">${avc(v,'11cqh')}${mine?`<span class="yt">${L('👉 तपाईंको पालो','👉 Your turn')}</span>`:''}</div>
  
  ${rb('dub',87.4,21.8,pm=='dub'?'DUB ✓':'DUB',!seePh||!dubOk())}${S.seen[v]?rb('dec',80.9,40.7,'FIN',!(mine&&S.ph=='disc')||S.pend[v]):rb('see',80.9,40.7,pm=='see'?'SEQ ✓':'SEQ',!seePh)}${rb('can',87.4,60.6,'CAN',sel<0&&!pm)}
  <button class="rb big" data-a="${S.ph=='post'&&mine?'ok':'ds'}" style="left:85.7cqw;top:calc(40.7cqh - 14cqh)" ${(S.ph=='post'&&mine)||el?'':'disabled'}><span>${S.ph=='post'&&mine?'OK':'SHOW'}</span></button>
