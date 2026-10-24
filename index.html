@@ -150,6 +150,7 @@ html,body{width:100%;height:100%}
 .la{position:relative;--sz:11cqh;width:11cqh;height:11cqh;border-radius:50%;background:#cfcfcf;border:.6cqh solid #a98f5c;display:flex;align-items:center;justify-content:center;font-size:6.4cqh;flex:0 0 auto}
 .ln{font:600 3.7cqh Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ls{font-size:2.7cqh;color:#d9c48f;white-space:nowrap}
 .lx{font-size:3.8cqh;color:#ff9a8f;background:none;border:0;padding:0 .6cqw}
+.lx.fw{font-size:2.6cqh;white-space:nowrap;color:#d9c48f;border:.3cqh solid rgba(217,196,143,.5);border-radius:1.2cqh;padding:.5cqh 1cqw}.lx.fw.on{color:#7ee0a3;border-color:#7ee0a3}
 .lc{min-height:0;display:flex;flex-direction:column;border-radius:1.6cqh;background:rgba(0,0,0,.35);border:.3cqh solid rgba(201,169,106,.35);padding:1cqh}
 #chl{flex:1;min-height:0;overflow:auto;font-size:3.1cqh;line-height:1.3;color:#eee}.cm{margin:.4cqh 0;word-break:break-word}.cm b{color:#f0c94a;font-weight:600}.cm.me b{color:#7ee0a3}.ce{color:#8aa;font-size:3cqh;text-align:center;margin-top:3cqh}
 .cq{display:flex;gap:.8cqh;overflow-x:auto;margin:.8cqh 0;flex:0 0 auto}.cq button{flex:0 0 auto;font-size:3cqh;padding:.3cqh 1.2cqh;border-radius:2cqh;border:.25cqh solid #6a5a35;background:rgba(255,255,255,.07);color:#fff;white-space:nowrap}
@@ -160,12 +161,13 @@ html,body{width:100%;height:100%}
 .pkt{position:absolute;left:50%;bottom:-3.6cqh;transform:translateX(-50%);background:#a31f1f;color:#fff;font:700 2.4cqh Georgia,serif;padding:.1cqh 1cqh;border-radius:1cqh;font-style:normal}
 .ms.pu{border:.3cqh solid #ffd75e;background:rgba(255,215,94,.18)}
 #toast{display:none;position:fixed;left:50%;bottom:12vh;transform:translateX(-50%);background:rgba(0,0,0,.88);color:#fff;border:2px solid #c9a96a;padding:8px 16px;border-radius:20px;z-index:300;font:16px Georgia,serif;font-style:normal}
+.hi{background:rgba(255,255,255,.05);border:.2cqh solid #3a3520;border-radius:1cqh;padding:.7cqh 1cqh;margin:.6cqh 0}.ht{font-size:3cqh;color:#f0c94a;font-style:normal}.ht span{display:block;font-size:2.5cqh;color:#b9a77a}.hi table{width:100%;border-collapse:collapse;font-size:2.9cqh;color:#eee;font-style:normal}.hi td,.hi th{padding:.2cqh .5cqh;font-weight:400;text-align:right}.hi td:first-child,.hi th:first-child{text-align:left}.hi th{color:#b9a77a;font-size:2.5cqh}.hi tr.me td{color:#ffd75e}.hn{font-size:2.7cqh!important;color:#b9a77a!important}.hw{color:#7ee0a3}.hl{color:#ff9a8f}
 </style></head><body><div id="app"></div><div id="vc"></div><div id="xb"></div><div id="rot"><div style="font-size:64px">📱↻</div>फोन तेर्सो (horizontal) पार्नुहोस्</div>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script>const BUILD='4.1.0+fest2';</script>
+<script>const BUILD='4.1.1+fix1';</script>
 <script>
 /* js/core.js - globals, helpers, profile, maal (tiplu) and meld rules */
-const $=s=>document.querySelector(s),SU='♠♥♦♣',R=r=>({1:'A',11:'J',12:'Q',13:'K'}[r]||r),cs=c=>c>>4,cr=c=>c&15,esc=s=>String(s).replace(/[<>&]/g,'');
+const $=s=>document.querySelector(s),SU='♠♥♦♣',R=r=>({1:'A',11:'J',12:'Q',13:'K'}[r]||r),cs=c=>c>>4,cr=c=>c&15,esc=s=>String(s).replace(/[<>&"]/g,''),okId=(s,n=24)=>typeof s=='string'&&s.length>0&&s.length<=n&&/^[\w-]+$/.test(s);
 const AW=()=>{const a=document.getElementById('app');return a&&a.clientWidth||window.innerWidth},AH=()=>{const a=document.getElementById('app');return a&&a.clientHeight||window.innerHeight};
 const rnd=n=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n};
 const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -309,13 +311,27 @@ function bot(){const t=S.turn,h=S.h[t],V=botVis(h);
 </script>
 <script>
 /* js/session.js - go / save / resume / post: pushes state to guests (other hands hidden) */
-function go(a){if(a.t=='lobby'){if(isHost&&S&&S.ph=='end'){reseat();S.ph='lobby';S.res=null;S.rd={};V='lobby';S.id++;post()}return}if(a.t=='new'){if(isHost){reseat();S.dl++;deal();dealAt=Date.now();S.id++;post()}return}if(isHost)act(me(),a);else room&&room.emit('act',{cid,a})}
-function svSave(){try{if(!S||!S.seats||(V!='game'&&V!='lobby'&&V!='wait')||code=='P2P')return;SV=null;localStorage.setItem('mrsv',JSON.stringify({t:Date.now(),mode,isHost,code,cid,V,S:{...S,msg:''},D:isHost?D:[]}))}catch(e){}}
+function go(a){if(a.t=='lobby'){if(isHost&&S&&S.ph=='end'){reseat();S.ph='lobby';S.res=null;S.rd={};S.fw={};V='lobby';S.id++;post()}return}if(a.t=='new'){if(isHost){reseat();S.dl++;deal();dealAt=Date.now();S.id++;post()}return}if(isHost)act(me(),a);else room&&room.emit('act',{cid,a})}
+function svSave(){try{histSnap()}catch(e){}try{if(!S||!S.seats||(V!='game'&&V!='lobby'&&V!='wait')||code=='P2P')return;SV=null;localStorage.setItem('mrsv',JSON.stringify({t:Date.now(),mode,isHost,code,cid,V,S:{...S,msg:''},D:isHost?D:[]}))}catch(e){}}
 function svClear(){try{localStorage.removeItem('mrsv')}catch(e){}SV=null}
+/* ---- History: every player's coins/points are saved on this phone at game start/end and when the connection is lost (Settings → History) ---- */
+const histGet=()=>{try{return JSON.parse(localStorage.getItem('mrhist'))||[]}catch(e){return[]}};
+function histAdd(k){try{if(!S||!S.seats||mode!='online')return;const now=Date.now(),g=S.gid+'/'+S.t0,a=histGet();
+ if(a.slice(-14).some(e=>e.k==k&&e.g==g&&(k=='start'||k=='end'||now-e.t<30000)))return;
+ const bk=S.bk||[],r=k=='end'&&S.res;
+ a.push({t:now,k,c:code,g,p:S.seats.map((s,i)=>({n:s.n,b:s.b?1:0,m:s.c==cid?1:0,k:bk[i],...(r&&r[i]?{s:r[i].pts,d:r[i].n,w:S.w==i?1:0}:{})}))});
+ localStorage.setItem('mrhist',JSON.stringify(a.slice(-80)))}catch(e){}}
+function histSnap(){if(!S||!S.seats||mode!='online'||!S.bk||S.ph=='lobby')return;const e=S.ph=='end';if(e&&!S.res)return;const key=(e?'e':'s')+S.gid+'/'+S.t0;if(histSnap.k==key)return;histSnap.k=key;histAdd(e?'end':'start')}
+addEventListener('offline',()=>{try{if(S&&mode=='online'&&S.ph!='lobby'&&S.ph!='end')histAdd('off')}catch(e){}});
+const HT={start:['▶','खेल सुरु — अघिको सिक्का','Game started — coins before'],end:['🏁','खेलको नतिजा','Game result'],host:['⚠','होस्ट अफलाइन भयो — पछिल्लो सिक्का','Host went offline — last coins'],off:['⚠','मेरो इन्टरनेट गयो — पछिल्लो सिक्का','My internet went offline — last coins'],fail:['⚠','खेलमा फर्कन सकिएन — पछिल्लो सिक्का','Could not rejoin — last coins'],left:['🚪','खेलको बीचमा निस्किएँ — पछिल्लो सिक्का','Left mid-game — last coins']};
+function histHtml(){const a=histGet().slice(-30).reverse(),v=x=>x==null?'–':x,sg=x=>x==null?'–':`<b class="${x<0?'hl':'hw'}">${x>0?'+':''}${x}</b>`;
+ if(!a.length)return `<p class="hn">${L('अहिलेसम्म कुनै अनलाइन खेल रेकर्ड भएको छैन। खेल सुरु र अन्त्य हुँदा हरेक खेलाडीको सिक्का र अंक यहाँ सुरक्षित हुन्छ।','No online games recorded yet. Every player’s coins and points are saved here when a game starts and ends.')}</p>`;
+ return `<p class="hn">${L('यो फोनमा सुरक्षित — इन्टरनेट गए पनि हराउँदैन।','Saved on this phone — kept even if the connection is lost.')}</p>`+a.map(e=>{const h=HT[e.k]||['•',e.k,e.k],en=e.k=='end';
+  return `<div class="hi"><div class="ht">${h[0]} ${L(h[1],h[2])}<span>${new Date(e.t).toLocaleString([],{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})} · ${L('कोठा','Room')} ${esc(e.c)}</span></div><table><tr><th>${L('खेलाडी','Player')}</th>${en?`<th>${L('अंक','Pts')}</th><th>±</th>`:''}<th>🪙</th></tr>${(e.p||[]).map(p=>`<tr class="${p.m?'me':''}"><td>${p.w?'🏆 ':''}${esc(p.n)}${p.b?' 🤖':''}${p.m?L(' (तपाईं)',' (you)'):''}</td>${en?`<td>${v(p.s)}</td><td>${sg(p.d)}</td>`:''}<td>${v(p.k)}</td></tr>`).join('')}</table></div>`}).join('')+`<button class="op" data-a="hclr">🗑 ${L('इतिहास मेटाउनुस्','Clear history')}</button>`}
 function resume(){const q=SV;if(!q||!q.S)return;SV=null;cid=q.cid;mode=q.mode;isHost=q.isHost;code=q.code;S=q.S;D=q.D||[];lastDl=S.gid+'/'+S.dl;joinAt=Date.now();
  const vv=()=>S.ph=='lobby'?(isHost?'lobby':'wait'):(isHost||S.seats.some(x=>x.c==cid)?'game':'wait');V=vv();
  if(mode=='solo'){post();return}
- render();let n=4;const t=async()=>{if(n<=2)isHost=false;const ok=await conn(code,isHost,true,isHost?(S.hg||0):0);if(ok){V=vv();if(isHost)post();else render();return}if(--n>0)setTimeout(t,2500);else{alert(L('खेलमा फर्कन सकिएन','Could not rejoin the game'));S=null;V='home';mode=null;isHost=false;svClear();render()}};t()}
+ render();let n=4;const t=async()=>{if(n<=2)isHost=false;const ok=await conn(code,isHost,true,isHost?(S.hg||0):0);if(ok){V=vv();if(isHost)post();else render();return}if(--n>0)setTimeout(t,2500);else{histAdd('fail');alert(L('खेलमा फर्कन सकिएन','Could not rejoin the game'));S=null;V='home';mode=null;isHost=false;svClear();render()}};t()}
 function maskSt(c){const me=c?S.seats.findIndex(x=>x.c==c):-1,o={...S,disc:(S.disc||[]).slice(),dpos:(S.dpos||[]).slice()};if(S.ph!='end'&&S.h){o.h=S.h.map((a,k)=>k==me?a:(a||[]).map(()=>0));o.tn=(S.tn||[]).map((a,k)=>k==me?a:[])}return o}
 function pushSt(){if(mode!='online'||!room||!isHost||!S||hold)return;if(typeof room.each=='function')room.each('st',c=>maskSt(c));else room.emit('st',{...S,disc:(S.disc||[]).slice(),dpos:(S.dpos||[]).slice()}).catch(()=>{})}
 function post(){svSave();S.dn=D.length;S.dcn=(S.disc||[]).length;pushSt();render();clearTimeout(bt);
@@ -325,7 +341,7 @@ function start(){S.rl={...DEFR,...(PF.rules||{}),...(S.rl||{})};S.dl=0;S.id=0;S.
 <script>
 /* js/net.js - PeerJS rooms (host and guest), wire() message handlers */
 /* ---- Online by room code: PeerJS cloud only pairs the phones; game data then flows phone-to-phone ---- */
-const ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'},{urls:'stun:stun.cloudflare.com:3478'},{urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turn:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}];
+const ICE=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'},{urls:'stun:stun.cloudflare.com:3478'},{urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turn:openrelay.metered.ca:443?transport=tcp','turns:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}];
 const MAXG=12;
 function mkRoom(code,host,gen){return new Promise((res,rej)=>{
  /* gen = host generation. gen 0 = 'mar-CODE'. After a host migration the new host registers 'mar-CODE-1', 'mar-CODE-2'… (the old id may still be held by the dead host's session) */
@@ -359,11 +375,11 @@ function mkRoom(code,host,gen){return new Promise((res,rej)=>{
   else{try{peer.destroy()}catch(x){}rej(er)}});
  peer.on('open',()=>{
   if(opened){if(!host)tryConn();return}opened=true;
-  if(host){peer.on('connection',c=>{c.on('open',()=>{conns.push(c);try{c.send({e:'hi',d:{g:tg,n:conns.filter(x=>x.open&&x!==c).length}})}catch(x){}pc&&pc({joined:[c.peer]})});c.on('data',m=>{if(m&&m.d&&m.d.cid)c.cid=m.d.cid;fire(m.e,m.d)});const gone=()=>{const k=conns.indexOf(c);if(k>=0){conns.splice(k,1);fire('drop',{peer:c.peer})}};c.on('close',gone);c.on('error',gone)});res.ok=1;res(api)}
+  if(host){peer.on('connection',c=>{c.on('open',()=>{conns.push(c);try{c.send({e:'hi',d:{g:tg,n:conns.filter(x=>x.open&&x!==c).length}})}catch(x){}pc&&pc({joined:[c.peer]})});c.on('data',m=>{if(!m||typeof m!='object')return;if(m.d&&okId(m.d.cid))c.cid=m.d.cid;fire(m.e,m.d)});const gone=()=>{const k=conns.indexOf(c);if(k>=0){conns.splice(k,1);fire('drop',{peer:c.peer})}};c.on('close',gone);c.on('error',gone)});res.ok=1;res(api)}
   else tryConn()});
  wd=setInterval(()=>{if(done)return clearInterval(wd);try{if(peer.disconnected&&!peer.destroyed)peer.reconnect()}catch(x){}if(!host)tryConn()},4000);
  setTimeout(()=>{if(!res.ok){done=true;clearInterval(wd);try{peer.destroy()}catch(x){}rej(lastErr||new Error('timeout'))}},host?15000:20000)})}
-async function conn(c,host,quiet,gen){let r=null;seen={};onl=new Set();lastPr=0;lastPo=0;lats={};myLat=null;CH=[];pst={};syncT={};if(room&&c!='P2P'){try{room.leave()}catch(e){}room=null}
+async function conn(c,host,quiet,gen){let r=null;seen={};seenT=Date.now();onl=new Set();lastPr=0;lastPo=0;lats={};myLat=null;CH=[];pst={};syncT={};if(room&&c!='P2P'){try{room.leave()}catch(e){}room=null}
  if(c=='P2P')r=1;else if(window.Peer){try{let e0=null;for(let k=0;k<(host?1:3)&&!room;k++){try{room=await mkRoom(c,host,gen)}catch(e){e0=e;if(host||(e&&e.type=='peer-unavailable'))break;await new Promise(z=>setTimeout(z,1000))}}if(!room)throw e0||new Error('timeout');r=2}catch(e){if(!quiet)alert((e&&e.type=='peer-unavailable'?L('कोठा फेला परेन — कोड ठीक छ कि र होस्टले कोठा खोलेको छ कि जाँच्नुहोस्।','Room not found — check the code and make sure the host has the room open.'):L('जोड्न सकिएन — इन्टरनेट जाँचेर फेरि प्रयास गर्नुस्। (होस्ट अफलाइन भए पनि यस्तो हुन्छ)','Could not connect — check your internet and try again. (This also happens if the host is offline.)'))+' ('+((e&&(e.type||e.message))||'')+')');return false}}else try{r=await claude.use('room')}catch(e){}if(!r){alert(L('अनलाइनका लागि यो पेज claude.ai मा साइन-इन गरेर साझा लिङ्कबाट खोल्नुपर्छ।','For online play, open this page from the shared link while signed in to claude.ai.'));return false}
  if(r!==2)room=c=='P2P'?P2P.room:await r.join('mar-'+c);
  wire(room);return true}
@@ -374,16 +390,18 @@ function wire(R){
  R.on('hreq',m=>{if(isHost||m.isMe||!S||!S.h||!room)return;const i=S.seats.findIndex(x=>x.c==cid),a=S.h[i];if(i>=0&&a&&a.length&&a.every(c=>c>0))room.emit('hres',{cid,h:a})});
  R.on('hres',m=>{if(isHost&&m.data&&m.data.cid&&Array.isArray(m.data.h)&&m.data.h.every(Number.isInteger))hres[m.data.cid]=m.data.h});
  R.on('act',m=>{if(!isHost||m.isMe||hold)return;const s=S.seats.findIndex(x=>x.c==m.data.cid);if(s>=0)act(s,m.data.a)});
- R.on('join',m=>{if(isHost&&m.data)seen[m.data.cid]=Date.now();if(!isHost||m.isMe||!m.data||!S)return;const c0=m.data.cid;if((S.kk||[]).includes(c0))return;if(S.seats.some(x=>x.c==c0)||(S.wl||[]).some(x=>x.c==c0)){const nt=Date.now();if(nt-(syncT[c0]||0)>2500){syncT[c0]=nt;pushSt()}return}
-  const used=S.seats.map(x=>x.n).concat((S.wl||[]).map(x=>x.n));let n0=String(m.data.n).slice(0,12);if(!n0||n0=='Player'||used.includes(n0))n0=nmFor(used.length,used);
+ R.on('join',m=>{if(!m.data||!okId(m.data.cid))return;if(isHost)seen[m.data.cid]=Date.now();if(!isHost||m.isMe||!S)return;const c0=m.data.cid;if((S.kk||[]).includes(c0))return;if(S.seats.some(x=>x.c==c0)||(S.wl||[]).some(x=>x.c==c0)){const nt=Date.now();if(nt-(syncT[c0]||0)>2500){syncT[c0]=nt;pushSt()}return}
+  const used=S.seats.map(x=>x.n).concat((S.wl||[]).map(x=>x.n));let n0=String(m.data.n).replace(/[<>&"]/g,'').slice(0,12);if(!n0||n0=='Player'||used.includes(n0))n0=nmFor(used.length,used);
   if(S.ph=='lobby'&&S.seats.length<5)S.seats.push({n:n0,c:c0});else S.wl=(S.wl||[]).concat([{n:n0,c:c0}]).slice(0,10);post()});
+ R.on('fw',m=>{if(!isHost||!m.data||!S||S.ph!='lobby')return;const c=m.data.cid,t=m.data.t,hu=x=>S.seats.some(s=>s.c==x&&!s.b);if(!hu(c))return;S.fw=S.fw||{};if(t&&t!=c&&hu(t))S.fw[c]=t;else delete S.fw[c];post();fwCheck()});
+ R.on('hmv',m=>{if(isHost||!m.data||!okId(m.data.to))return;nhTo=m.data.to;mig.bye=1;toast('👑 '+L('होस्ट बदलिँदै…','Changing host…'))});
  R.on('rdy',m=>{if(!isHost||!m.data||!S||S.ph!='lobby')return;S.rd=S.rd||{};S.rd[m.data.cid]=!S.rd[m.data.cid];post()});
  R.on('ch',m=>{if(!isHost||!m.data||!m.data.t)return;CH.push({c:String(m.data.c),n:String(m.data.n||'?').slice(0,12),t:String(m.data.t).slice(0,160)});CH=CH.slice(-60);try{room.emit('chl',CH)}catch(e){}chRender()});
  R.on('chl',m=>{if(isHost||!Array.isArray(m.data))return;CH=m.data;chRender()});
  R.on('hb',m=>{if(!isHost||!m.data)return;const nw=!seen[m.data.cid];seen[m.data.cid]=Date.now();if(m.data.lat!=null)lats[m.data.cid]=m.data.lat;try{room.emit('po',{cid:m.data.cid,t:m.data.t})}catch(e){}if(nw)prTick()});
  R.on('po',m=>{if(isHost||!m.data||m.data.cid!=cid)return;const r=Date.now()-m.data.t;lastPo=Date.now();if(r>=0&&r<30000){myLat=myLat==null?r:Math.round(myLat*.5+r*.5)}prUpdate()});
  R.on('pr',m=>{if(isHost||!m.data||!Array.isArray(m.data.on))return;onl=new Set(m.data.on);lats=m.data.lat||{};lastPr=Date.now();prUpdate()});
- R.on('vj',m=>{if(!isHost||!m.data||!m.data.id)return;vlist=vlist.filter(x=>x.cid!=m.data.cid&&x.id!=m.data.id);vlist.push({id:String(m.data.id),cid:m.data.cid,m:m.data.m?1:0,hm:vhm[m.data.cid]?1:0});room.emit('vl',vlist);vSync()});
+ R.on('vj',m=>{if(!isHost||!m.data||!okId(m.data.id,64)||!okId(m.data.cid))return;vlist=vlist.filter(x=>x.cid!=m.data.cid&&x.id!=m.data.id);vlist.push({id:String(m.data.id),cid:m.data.cid,m:m.data.m?1:0,hm:vhm[m.data.cid]?1:0});room.emit('vl',vlist);vSync()});
  R.on('vx',m=>{if(!isHost||!m.data)return;vlist=vlist.filter(x=>x.cid!=m.data.cid);room.emit('vl',vlist);vSync()});
  R.on('drop',m=>{if(!isHost)return;const n=vlist.length;vlist=vlist.filter(x=>x.id!=m.data.peer);if(vlist.length!=n){room.emit('vl',vlist);vSync()}});
  R.on('vl',m=>{if(isHost||!Array.isArray(m.data))return;vlist=m.data;vApplyHm();vSync()});
@@ -398,7 +416,7 @@ const CHQ=['👋','😂','🎉','👏','तयार छु ✋','पर्ख�
 const seatKey=x=>x.c||('b:'+x.n);
 const hostIdx=()=>{const i=S&&S.seats&&S.hc?S.seats.findIndex(x=>x.c&&x.c==S.hc):-1;return i<0?0:i};
 function toast(t){let e=document.getElementById('toast');if(!e){e=document.createElement('div');e.id='toast';document.body.appendChild(e)}e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',1800)}
-function reseat(){if(!S||mode!='online')return;const now=Date.now(),on=x=>!x.c||x.c==cid||now-(seen[x.c]||0)<30000;
+function reseat(){if(!S||mode!='online')return;const now=Date.now(),on=x=>!x.c||x.c==cid||now-(seen[x.c]||seenT)<60000;
  S.seats=S.seats.filter(on);S.wl=(S.wl||[]).filter(on);while(S.seats.length<5&&S.wl.length)S.seats.push(S.wl.shift());
  S.dl=S.dl%Math.max(1,S.seats.length);S.bkm=S.bkm||{};S.bk=S.seats.map(x=>S.bkm[seatKey(x)]??(S.cc||100));S.bk0=null}
 function packPlayer(i){S.pkd[i]=true;S.pend[i]=false;lg(esc(S.seats[i].n)+': '+L('१ मिनेट बाहिर — तास प्याक भयो','offline for 1 min — hand packed'));
@@ -416,9 +434,10 @@ function lobbyHtml(){
  const P2=code=='P2P',seats=S.seats,N=seats.length,inGame=S.ph!='lobby',wl=S.wl||[],rd=S.rd||{};
  if((S.kk||[]).includes(cid))return `<div class="lb" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3cqh"><div style="font-size:5cqh;color:#ffb3a8">${L('होस्टले तपाईंलाई कोठाबाट हटायो','The host removed you from the room')}</div><button class="lbtn pri" data-a="back">OK</button></div>`;
  const vfor=s=>{const v=s.c?vlist.find(x=>x.cid==s.c):null;return v?{id:v.id==vme()?'me':v.id,m:v.m,hm:v.hm}:null};
+const fwm=S.fw||{},fwN=x=>fwHum().filter(y=>y.c!=x&&fwm[y.c]==x).length,fwB=s=>(P2||inGame||s.b||!s.c||s.c==cid||!seats.some(x=>x.c==cid))?'':`<button class="lx fw ${fwm[cid]==s.c?'on':''}" data-a="fw" data-v="${esc(s.c)}">${fwm[cid]==s.c?'✅':'👆'} ${L('फलो','Follow')}${fwN(s.c)?' '+fwN(s.c):''}</button>`;
  const card=(s,i)=>{const v=vfor(s),host0=i==hostIdx()&&!P2;
   const st=s.b?L('कम्प्युटर','Computer'):host0?L('होस्ट','Host'):inGame?L('खेलिरहेको','Playing'):(rd[s.c]?`<span style="color:#7ee0a3">✅ ${L('तयार','Ready')}</span>`:'⏳ '+L('पर्खँदै','Waiting'));
-  return `<div class="lp ${s.c==cid?'me':''}" ${v?`data-vid="${esc(v.id)}"`:''}><div class="la">${s.b?'🤖':FACE[i%5]}${odot(s)}</div><div style="min-width:0;flex:1"><div class="ln">${host0?'👑 ':''}${esc(s.n)}${s.c==cid?L(' (तपाईं)',' (you)'):''}</div><div class="ls">${st}${v?(v.m||v.hm?' 🔇':' 🎙'):''}${v&&v.id!='me'&&vs&&!(vcalls[v.id]&&vcalls[v.id]._got)?' …':''}${s.c&&!s.b?' · <i class="lat" data-om="'+esc(s.c)+'">'+msOf(s.c)+'</i>':''}</div></div>${isHost&&v&&s.c!=cid?`<button class="lx" data-vc="hm" data-cid="${esc(s.c)}" data-on="${v.hm?0:1}" style="color:#d9c48f">${v.hm?'🔊':'🔇'}</button>`:''}${isHost&&!inGame&&i!=hostIdx()?`${s.b?`<button class="lx" style="color:#d9c48f" data-a="rn" data-v="${i}">✎</button>`:''}<button class="lx" data-a="kick" data-v="${i}">✕</button>`:''}</div>`};
+  return `<div class="lp ${s.c==cid?'me':''}" ${v?`data-vid="${esc(v.id)}"`:''}><div class="la">${s.b?'🤖':FACE[i%5]}${odot(s)}</div><div style="min-width:0;flex:1"><div class="ln">${host0?'👑 ':''}${esc(s.n)}${s.c==cid?L(' (तपाईं)',' (you)'):''}</div><div class="ls">${st}${v?(v.m||v.hm?' 🔇':' 🎙'):''}${v&&v.id!='me'&&vs&&!vOk(vcalls[v.id])?' …':''}${s.c&&!s.b?' · <i class="lat" data-om="'+esc(s.c)+'">'+msOf(s.c)+'</i>':''}</div></div>${fwB(s)}${isHost&&v&&s.c!=cid?`<button class="lx" data-vc="hm" data-cid="${esc(s.c)}" data-on="${v.hm?0:1}" style="color:#d9c48f">${v.hm?'🔊':'🔇'}</button>`:''}${isHost&&!inGame&&i!=hostIdx()?`${s.b?`<button class="lx" style="color:#d9c48f" data-a="rn" data-v="${i}">✎</button>`:''}<button class="lx" data-a="kick" data-v="${i}">✕</button>`:''}</div>`};
  let cards=seats.map(card).join('');
  for(let k=N;k<5;k++)cards+=isHost&&!inGame?`<button class="lp em" data-a="addb">＋ 🤖 ${L('कम्प्युटर','Computer')}</button>`:`<div class="lp em">${L('खाली सिट','Open seat')}</div>`;
  const rc=seats.filter((s,i)=>s.c&&i!=hostIdx()&&rd[s.c]).length,hc=seats.filter((s,i)=>s.c&&i!=hostIdx()).length;
@@ -437,7 +456,7 @@ function lobbyHtml(){
 <script>
 /* js/presence.js - online heartbeat, latency, green/red dots */
 /* ---- Presence: guests send a heartbeat to the host; host tells everyone who is online (green/red dot on avatar) ---- */
-let seen={},onl=new Set(),lastPr=0,lastPo=0,lats={},myLat=null,joining=0,wlk=null;
+let seenT=Date.now(),seen={},onl=new Set(),lastPr=0,lastPo=0,lats={},myLat=null,joining=0,wlk=null;
 const isOn=c=>c==cid?(isHost||Date.now()-lastPo<9000):(isHost?Date.now()-(seen[c]||0)<9000:(Date.now()-lastPr<9000&&onl.has(c)));
 const latOf=c=>c==cid?(isHost?0:myLat):lats[c];
 const qOf=c=>{if(!isOn(c))return 'off';const l=latOf(c);return l==null||l<250?'good':l<600?'mid':'bad'};
@@ -446,6 +465,12 @@ function odot(s,inl){return(mode=='online'&&s&&s.c&&!s.b)?`<span class="od ${inl
 function prUpdate(){document.querySelectorAll('[data-oc]').forEach(e=>{const c=e.dataset.oc;e.classList.toggle('on',isOn(c));const q=qOf(c);['good','mid','bad','off'].forEach(k=>e.classList.toggle(k,k==q))});document.querySelectorAll('[data-om]').forEach(e=>{const c=e.dataset.om,t=msOf(c);if(e.textContent!==t)e.textContent=t;const q=qOf(c);e.style.color=q=='off'?'#ff7a6b':q=='bad'?'#ff8a30':q=='mid'?'#f2c230':'#7ee0a3'});
  try{if(mode=='online'&&S&&S.seats&&isOn(cid)&&(V=='game'||V=='lobby'||V=='wait')){S.seats.forEach(x=>{if(!x.c||x.b||x.c==cid)return;const o=isOn(x.c),p=pst[x.c];if(p!=null&&p!==o)toast((o?'✅ ':'⚠ ')+x.n+(o?L(' फेरि अनलाइन भयो',' is back online'):L(' अफलाइन भयो — इन्टरनेट गयो',' went offline')));pst[x.c]=o})}}catch(e){}
  netChip()}
+/* status chip sits just left of the mic/voice buttons (game: #vc, lobby: Rules + voice buttons) and is centred on their row */
+function netPos(){try{const n=document.getElementById('net');if(!n)return;const bs=[...document.querySelectorAll('#vc>:first-child,.lh [data-a="rules"],.lh [data-vc]')].filter(e=>e.getClientRects().length);
+ if(!bs.length){n.style.top=n.style.right=n.style.transform='';return}
+ const rs=bs.map(e=>e.getBoundingClientRect()),l=Math.min(...rs.map(r=>r.left));
+ n.style.right=Math.max(0,Math.ceil(innerWidth-l+innerHeight*.012))+'px';n.style.top=Math.round(rs[0].top+rs[0].height/2)+'px';n.style.transform='translateY(-50%)'}catch(e){}}
+addEventListener('resize',()=>netPos());addEventListener('orientationchange',()=>setTimeout(netPos,300));
 function netChip(){let el=document.getElementById('net');if(!el){el=document.createElement('div');el.id='net';document.body.appendChild(el)}
  const onl=mode=='online'&&room&&code!='P2P'&&(V=='lobby'||V=='wait'||V=='game');let q='',t='';
  if(!navigator.onLine&&(onl||joining)){q='off';t=L('इन्टरनेट छैन','No internet')}
@@ -456,14 +481,14 @@ function netChip(){let el=document.getElementById('net');if(!el){el=document.cre
   else{t=(q=='good'?L('जडान राम्रो','Connected'):q=='mid'?L('जडान ढिलो','Slow'):L('जडान कमजोर','Weak'))+(isHost?'':(l!=null?' · '+Math.round(l)+' ms':''));
    if(isHost&&S&&S.seats){const pl=S.seats.filter(x=>x.c&&!x.b),off=pl.filter(x=>!isOn(x.c));t+=' · '+(pl.length-off.length)+'/'+pl.length+' '+L('अनलाइन','online');if(off.length)q=q=='good'?'mid':q}}}
  if(mig.on&&onl&&navigator.onLine){q='mid';t=L('होस्ट अफलाइन — नयाँ होस्ट छान्दै…','Host offline — choosing a new host…')}
- const h=`<b class="nd ${q}"></b>${t}`;if(el._h!==h){el._h=h;el.innerHTML=h}el.className='net '+q;el.style.display='flex'}
+ const h=`<b class="nd ${q}"></b>${t}`;if(el._h!==h){el._h=h;el.innerHTML=h}el.className='net '+q;el.style.display='flex';netPos()}
 function wakeLock(){try{if(mode=='online'&&navigator.wakeLock&&!wlk&&document.visibilityState=='visible'){wlk='p';navigator.wakeLock.request('screen').then(l=>{wlk=l;l.addEventListener('release',()=>{wlk=null})}).catch(()=>{wlk=null})}}catch(e){wlk=null}}
 function prTick(){if(!room||mode!='online')return;try{if(isHost){if(!S||!S.seats)return;const on=S.seats.filter(x=>x.c&&(x.c==cid||Date.now()-(seen[x.c]||0)<9000)).map(x=>x.c);onl=new Set(on);lastPr=Date.now();room.emit('pr',{on,lat:lats});packCheck()}
  else{room.emit('hb',{cid,t:Date.now(),lat:myLat});if(room.reconnect&&Date.now()-lastPo>12000&&Date.now()-(room._rc||0)>6000){room._rc=Date.now();room.reconnect(true)}}
  try{if(!isHost&&S&&S.seats&&!S.seats.some(x=>x.c==cid)&&!(S.wl||[]).some(x=>x.c==cid)&&!(S.kk||[]).includes(cid)&&Date.now()-(prTick.rj||0)>4000){prTick.rj=Date.now();room.emit('join',{cid,n:nm})}
  if(isHost&&Date.now()-(prTick.ls||0)>6000){prTick.ls=Date.now();pushSt();if(vlist.length)room.emit('vl',vlist)}
  if(vs&&!vlist.some(x=>x.cid==cid)&&Date.now()-(prTick.va||0)>3000){prTick.va=Date.now();vAnnounce()}}catch(e){}
- wakeLock()}catch(e){}try{migTick();hostTick()}catch(e){}prUpdate()}
+ wakeLock()}catch(e){}try{migTick();hostTick();fwCheck()}catch(e){}prUpdate()}
 setInterval(prTick,2000);setInterval(prUpdate,1000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible'){mig.okAt=Date.now();wakeLock();try{room&&room.reconnect&&room.reconnect(false)}catch(e){}prTick()}});
 addEventListener('online',()=>{mig.okAt=Date.now();try{room&&room.reconnect&&room.reconnect(true)}catch(e){}netChip()});addEventListener('offline',netChip);
@@ -475,13 +500,14 @@ let xhtml='';function xbRender(){const el=$('#xb');if(!el)return;const h=(V=='ga
 /* ---- Voice chat: mesh of PeerJS media calls. Who-is-in-voice list travels over the existing room channel (host relays). ---- */
 let vs=null,vm=false,vcalls={},vlist=[],vlev={},vctx=null,vhtml='',vhf=false,vhm={};
 const vme=()=>room&&room.peer&&room.peer.id;
+const vOk=c=>!!(c&&c._got&&c.peerConnection&&/^(connected|completed)$/.test(c.peerConnection.iceConnectionState)),vIOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1);
 function vOnCall(c){if(!vs)return c.close();const o=vcalls[c.peer];if(o){delete vcalls[c.peer];try{o.close()}catch(e){}}c.answer(vs);vAttach(c)}
 function vAttach(c){const id=c.peer;vcalls[id]=c;c.on('stream',st=>{c._got=1;vPlay(id,st);vcRender()});c.on('close',()=>vGone(id,c));c.on('error',()=>vGone(id,c))}
-function vCall(id){let c=null;try{c=room.peer.call(id,vs)}catch(e){}if(!c)return;vAttach(c);setTimeout(()=>{if(vcalls[id]===c&&!c._got){try{c.close()}catch(e){}vSync()}},12000)}
+function vCall(id){let c=null;try{c=room.peer.call(id,vs)}catch(e){}if(!c)return;vAttach(c);setTimeout(()=>{if(vcalls[id]===c&&!vOk(c)){try{c.close()}catch(e){}vSync()}},15000)}
 function vGone(id,c){if(vcalls[id]!==c)return;delete vcalls[id];delete vlev[id];const a=document.getElementById('va-'+id);if(a){a.srcObject=null;a.remove()}vcRender()}
-function vPlay(id,st){let a=document.getElementById('va-'+id);if(!a){a=document.createElement('audio');a.id='va-'+id;a.autoplay=true;a.setAttribute('playsinline','');a.style.display='none';document.body.appendChild(a)}a.srcObject=st;const p=a.play();if(p&&p.catch)p.catch(()=>{});vLevel(id,st)}
-function vLevel(k,st){try{vctx=vctx||new(window.AudioContext||window.webkitAudioContext)();if(vctx.resume)vctx.resume();const an=vctx.createAnalyser();an.fftSize=256;vctx.createMediaStreamSource(st).connect(an);vlev[k]={an,b:new Uint8Array(an.frequencyBinCount)}}catch(e){}}
-function vSync(){if(vs&&room&&room.peer){const me=vme();if(me)vlist.forEach(x=>{if(x.id!=me&&me<x.id&&!vcalls[x.id])vCall(x.id)})}vcRender()}
+function vPlay(id,st){let a=document.getElementById('va-'+id);if(!a){a=document.createElement('audio');a.id='va-'+id;a.autoplay=true;a.setAttribute('playsinline','');a.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';document.body.appendChild(a)}a.muted=false;a.volume=1;a.srcObject=st;const p=a.play();if(p&&p.catch)p.catch(()=>toast(L('🔈 आवाज सुन्न स्क्रिन एकपटक छुनुस्','🔈 Tap the screen once to hear voice')));vLevel(id,st)}
+function vLevel(k,st){if(vIOS)return;try{vctx=vctx||new(window.AudioContext||window.webkitAudioContext)();if(vctx.resume)vctx.resume();const an=vctx.createAnalyser();an.fftSize=256;vctx.createMediaStreamSource(st).connect(an);vlev[k]={an,b:new Uint8Array(an.frequencyBinCount)}}catch(e){}}
+function vSync(){if(vs&&room&&room.peer){Object.keys(vcalls).forEach(k=>{const c=vcalls[k],s=c.peerConnection&&c.peerConnection.iceConnectionState;if(s=='failed'||s=='closed'||(s=='disconnected'&&Date.now()-(c._d=c._d||Date.now())>6000)){try{c.close()}catch(e){}}else if(s!='disconnected')c._d=0});const me=vme();if(me)vlist.forEach(x=>{if(x.id!=me&&me<x.id&&!vcalls[x.id])vCall(x.id)})}vcRender()}
 function vAnnounce(){const e={id:vme(),cid,m:vm?1:0};if(isHost){vlist=vlist.filter(x=>x.cid!=cid);vlist.push(e);room.emit('vl',vlist)}else room.emit('vj',e)}
 async function vStart(){if(vs)return;if(!room||!room.peer)return toast(L('पहिले कोठामा जोडिनुस्','Join the room first'));
  if(!window.isSecureContext||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return alert(L('माइक चलाउन गेम https:// लिङ्कबाट खोल्नुपर्छ। डाउनलोड गरेको फाइल (content:// वा file://) बाट माइक चल्दैन — गेमलाई GitHub Pages / Netlify जस्ता https वेबसाइटमा राखेर खोल्नुस्।','The microphone only works when the game is opened from an https:// link. It does not work from a downloaded file (content:// or file://) — host the game on an https site such as GitHub Pages or Netlify.'));
@@ -502,7 +528,7 @@ function vcRender(){xbRender();try{const g=V=='game'&&S&&S.ph&&S.ph!='lobby',c=g
  if(ok){const me=vme(),nmOf=c=>{const s=S&&S.seats&&S.seats.find(x=>x.c==c);return s?s.n:'…'};
   h=vs?`<div class="vg"><button class="vb ${vm?'mu':'on'}" data-vc="mute">${vm?'🔇':'🎤'}</button><button class="vb" data-vc="leave">✕</button></div>`:`<button class="vb" data-vc="join">🎙 ${L('बोल्नुस्','Voice')}${vlist.length?' · '+vlist.length:''}</button>`;
   if(vlist.length)h+=`<div class="vl">${vlist.map(x=>`<span class="vp" data-vid="${x.id==me?'me':esc(x.id)}">${x.m||x.hm?'🔇':'🎙'} ${esc(nmOf(x.cid))}${isHost&&x.cid!=cid?`<button class="vb sm" data-vc="hm" data-cid="${esc(x.cid)}" data-on="${x.hm?0:1}">${x.hm?'🔊':'🔇'}</button>`:''}</span>`).join('')}</div>`}
- if(h!==vhtml){vhtml=h;el.innerHTML=h}}
+ if(h!==vhtml){vhtml=h;el.innerHTML=h}netPos()}
 setInterval(()=>{if(vs&&room)vSync()},5000);
 document.addEventListener('click',()=>{document.querySelectorAll('audio[id^="va-"]').forEach(a=>{if(a.paused){const q=a.play();if(q&&q.catch)q.catch(()=>{})}})});
 setInterval(()=>{document.querySelectorAll('[data-vid]').forEach(p=>{const l=vlev[p.dataset.vid];let on=false;if(l&&!(p.dataset.vid=='me'&&vm)){try{l.an.getByteTimeDomainData(l.b);let q=0;for(let i=0;i<l.b.length;i++){const d=l.b[i]-128;q+=d*d}on=Math.sqrt(q/l.b.length)>6}catch(e){}}p.classList.toggle('sp',on)})},150);
@@ -516,7 +542,7 @@ let askEl=null,guardIn=false,gT=0,exiting=false;
 function ask(msg,yes){closeAsk();const e=document.createElement('div');e.className='askb';e.innerHTML=`<div class="askc"><p>${msg}</p><div class="orow"><button class="op" data-ask="n">${L('नाइँ','Cancel')}</button><button class="op on" data-ask="y">${L('हो','Yes')}</button></div></div>`;e.addEventListener('click',ev=>{const b=ev.target.closest('[data-ask]');if(!b)return;const y=b.dataset.ask=='y';closeAsk();if(y)yes()});document.body.appendChild(e);askEl=e}
 function closeAsk(){if(askEl){askEl.remove();askEl=null}}
 function leaveMsg(){const oth=S&&S.seats&&code!='P2P'&&S.seats.some(x=>x.c&&!x.b&&x.c!=cid);return isHost&&mode=='online'?(oth?L('तपाईं होस्ट हुनुहुन्छ — निस्कँदा अर्को खेलाडी नयाँ होस्ट बन्छ र खेल जारी रहन्छ। निस्कने?','You are the host — if you leave, another player becomes the host and the game continues. Leave?'):L('तपाईं होस्ट हुनुहुन्छ — निस्कँदा सबैको खेल बन्द हुन्छ। निस्कने?','You are the host — leaving ends the game for everyone. Leave?')):V=='game'?L('खेल छोड्ने? चलिरहेको खेल हराउँछ।','Leave the game? The current game will be lost.'):L('कोठा छोड्ने?','Leave the room?')}
-function doBack(){if(room){try{room.leave()}catch(e){}room=null}clearTimeout(bt);if(S)svClear();S=null;V='home';mode=null;isHost=false;modal='';render()}
+function doBack(){try{if(S&&mode=='online'&&S.ph!='lobby'&&S.ph!='end')histAdd('left')}catch(e){}if(room){try{room.leave()}catch(e){}room=null}clearTimeout(bt);if(S)svClear();S=null;V='home';mode=null;isHost=false;modal='';render()}
 function closeSet(){const n2=$('#nm2');if(n2)nm=n2.value.trim()||nm;PF.name=nm;savePF();V='home';render()}
 function backReq(force){
  if(askEl){closeAsk();return}
@@ -693,9 +719,9 @@ const secSpeed=()=>`<div class="rr"><p>${L('खेलको गति','Game spe
 const secBg=()=>`<div class="rr w"><p>${L('टेबल','Table')}</p><div class="orow">${BGS.map((b,i)=>b[3]==null?OB('bg',i,'',`style="background:${b[0]};width:9cqh"`):OB('bg',i,FN[b[3]][0]+' '+L(FN[b[3]][1],FN[b[3]][2]),`style="background:linear-gradient(135deg,${b[0]},${b[2]});border-color:#c9a96a;font-size:2.8cqh"`)).join('')}</div></div>`;
 const secBack=()=>`<div class="rr"><p>${L('तासको पछाडि','Card back')}</p><div class="orow">${BKS.map((b,i)=>OB('back',i,'',`style="background:${b[1]};width:9cqh"`)).join('')}</div></div>`;
 const secTog=()=>{const c=CFG();return `<div class="rr"><div class="orow">${OB('hints',c.hints?0:1,c.hints?'💡 Highlight: ON':'💡 Highlight: OFF')}${OB('snd',c.snd?0:1,c.snd?'🔊 Sound: ON':'🔇 Sound: OFF')}</div></div>`};
-function setHtml(){return `<h2>⚙ ${L('छिटो सेटिङ','Quick settings')}</h2>${secSpeed()}${secTog()}${secLang()}${secBg()}<button class="op" data-a="rules">🧩 ${L('यो खेलका नियम हेर्नुस्','View rules of this game')}</button>`}
+function setHtml(){return `<h2>⚙ ${L('छिटो सेटिङ','Quick settings')}</h2>${secSpeed()}${secTog()}${secLang()}${secBg()}<button class="op" data-a="rules">🧩 ${L('यो खेलका नियम हेर्नुस्','View rules of this game')}</button><button class="op" data-a="hist">📜 ${L('इतिहास','History')}</button>`}
 function setPage(){const G=(h,b)=>`<div class="sg"><h4>${h}</h4>${b}</div>`;
- const c1=G('👤 '+L('प्रोफाइल','Profile'),secName()+secAv())+G('🎨 '+L('रूप','Look'),secLang()+secBg()+secBack());
+ const c1=G('👤 '+L('प्रोफाइल','Profile'),secName()+secAv())+G('🎨 '+L('रूप','Look'),secLang()+secBg()+secBack())+G('📜 '+L('इतिहास','History'),histHtml());
  const c2=G('🧩 '+L('नियम','Rules'),rulesHtml(true))+G('🎮 '+L('खेल र आवाज','Play & sound'),secSpeed()+secTog());
  return `<div class="spg"><div class="sh"><button class="bkb" data-a="closes">←</button><div class="st">⚙ ${L('सेटिङ','Settings')}</div></div><div class="sc"><div class="scol">${c1}</div><div class="scol">${c2}</div></div><div class="sft">© 2026 · Made by <b>SURAJ SIGDEL</b></div></div>`}
 
@@ -727,7 +753,7 @@ function popHtml(){
  if(V=='joinp')return `<div class="pop"><div class="pt">Join Room</div><button class="ri" data-a="online">←</button><input id="cd" class="gi" placeholder="Room code" inputmode="numeric" value="${esc(code)}"><button class="gb" data-a="join">Join</button></div>`;
  if(V=='wait'||(V=='lobby'&&S)){if(!S||!S.seats){const lost=Date.now()-joinAt>7000;return `<div class="pop"><div class="pt">${code=='P2P'?'📡 Nearby':'Room '+esc(code)}</div><button class="ri" data-a="back">←</button><p>${L('कोठा खोज्दै…','Looking for the room…')}</p>${lost?'<p style="color:#ffb3a8;font-size:3.4cqh">'+L('कोठा भेटिएन — कोड सही छ? होस्टले कोठा खोलेको छ? इन्टरनेट जाँच्नुस्।','Room not found — is the code right and the room open? Check your internet.')+'</p>':''}</div>`}return lobbyHtml()}
  return ''}
-function modalHtml(){const b=modal=='learn'?L(learnNE(),learnEN()):modal=='rules'?rulesModal():modal=='nadd'||modal=='njoin'?nHtml():modal=='rank'?`<h2>Rankings</h2><p style="font-style:normal">🪙 Coins: <b>${PF.coins}</b></p><p style="font-style:normal">Games: <b>${PF.games}</b> · Wins: <b>${PF.wins}</b></p>`:setHtml();
+function modalHtml(){const b=modal=='learn'?L(learnNE(),learnEN()):modal=='rules'?rulesModal():modal=='nadd'||modal=='njoin'?nHtml():modal=='rank'?`<h2>Rankings</h2><p style="font-style:normal">🪙 Coins: <b>${PF.coins}</b></p><p style="font-style:normal">Games: <b>${PF.games}</b> · Wins: <b>${PF.wins}</b></p>`:modal=='hist'?`<h2>📜 ${L('इतिहास','History')}</h2>${histHtml()}`:setHtml();
  return `<div class="ov"><div class="pop2">${b}<button class="gb" data-a="closem" style="width:40%">OK</button></div></div>`}
 function gameView(){
  const N=S.seats.length,v=me(),t=S.turn,anim=S.fresh&&Date.now()-dealAt<2600;if(anim)setTimeout(render,2750-(Date.now()-dealAt));
@@ -812,13 +838,13 @@ document.addEventListener('click',e=>{if(!e.target.closest('#tz'))return;if(Date
    - डेक (D) कसैलाई पठाइँदैन: बाँकी पत्ती = सबै पत्ती − हात − टेबुलमा देखाएका − भुइँ − माल  (नयाँ होस्टले पुनः बनाउँछ)।
    - नयाँ होस्टले 'mar-CODE-N' id दर्ता गर्छ। id एउटै मात्र दर्ता हुन सक्ने भएकाले दुई जना एकैपटक होस्ट बन्न सक्दैनन्। */
 const MIG={T:14000,GONE:4500,RANK:4000,PROBE:8000};
-let mig={on:0,g:0,t0:0,gone:0,claiming:0,goneAt:0,goneN:0,bye:0,okAt:0},hpA=0,hpN=0,hpB=0,hpT=0;
+let nhTo='',mig={on:0,g:0,t0:0,gone:0,claiming:0,goneAt:0,goneN:0,bye:0,okAt:0},hpA=0,hpN=0,hpB=0,hpT=0;
 const canMig=()=>mode=='online'&&code!='P2P'&&!!room&&!!room.peer&&typeof room.setGen=='function'&&!!S&&!!S.seats;
 const hostCid=()=>S.hc||(S.seats[0]&&S.seats[0].c)||'';
-const migCands=()=>S.seats.filter(x=>x.c&&!x.b&&x.c!=hostCid());
-function migReset(){const o=mig.okAt;mig={on:0,g:0,t0:0,gone:0,claiming:0,goneAt:0,goneN:0,bye:0,okAt:o}}
+const migCands=()=>{const a=S.seats.filter(x=>x.c&&!x.b&&x.c!=hostCid()),i=a.findIndex(x=>x.c==nhTo);return i>0?[a[i],...a.slice(0,i),...a.slice(i+1)]:a};
+function migReset(){const o=mig.okAt;nhTo='';mig={on:0,g:0,t0:0,gone:0,claiming:0,goneAt:0,goneN:0,bye:0,okAt:o}}
 function migDone(og){const g=S.hg||0;if(og!=null&&g>og){const h=(S.seats||[]).find(x=>x.c&&x.c==S.hc);toast('👑 '+(h?esc(h.n):'?')+L(' अब होस्ट हुनुभयो — खेल जारी',' is now the host — the game continues'));joinAt=Date.now()}if(mig.on&&g>=mig.g)migReset()}
-function startMig(){const g=Math.max(S.hg||0,room.gen||0)+1;mig.on=1;mig.g=g;mig.t0=Date.now();mig.gone=0;mig.claiming=0;mig.bye=0;mig.goneAt=0;mig.goneN=0;
+function startMig(){histAdd('host');const g=Math.max(S.hg||0,room.gen||0)+1;mig.on=1;mig.g=g;mig.t0=Date.now();mig.gone=0;mig.claiming=0;mig.bye=0;mig.goneAt=0;mig.goneN=0;
  toast(L('होस्ट अफलाइन भयो — नयाँ होस्ट छान्दै…','Host went offline — choosing a new host…'));try{room.setGen(g)}catch(e){}netChip()}
 /* guest side — called every 2 s from prTick */
 function migTick(){if(isHost||!canMig()||!(V=='game'||V=='lobby'||V=='wait'))return;
@@ -849,9 +875,9 @@ async function claimHost(g){if(mig.claiming||isHost)return;mig.claiming=1;let nr
  if(!nr||isHost||!S||!room){if(nr)try{nr.leave()}catch(e){}mig.claiming=0;mig.gone=0;if(room&&!isHost&&mig.on)try{room.setGen(g)}catch(e){}return}   /* id अरूले लिइसके → उसैलाई पछ्याउने */
  const old=room,oldHc=hostCid(),now=Date.now();
  room=nr;isHost=true;try{old.leave()}catch(e){}
- seen={};lats={};onl=new Set();lastPr=0;lastPo=0;myLat=null;pst={};syncT={};
+ seenT=Date.now();seen={};lats={};onl=new Set();lastPr=0;lastPo=0;myLat=null;pst={};syncT={};
  S.seats.forEach(x=>{if(x.c&&!x.b&&x.c!=cid)seen[x.c]=now});if(oldHc&&oldHc!=cid)seen[oldHc]=now-MIG.T;
- S.hg=g;S.hc=cid;S.msg='';S.id=(S.id||0)+1;
+ S.hg=g;S.hc=cid;S.fw={};S.msg='';S.id=(S.id||0)+1;
  wire(nr);hold=1;
  try{await getHands(oldHc)}catch(e){}hold=0;
  let okd=true;try{okd=restoreDeck()}catch(e){okd=false}
@@ -875,9 +901,14 @@ async function stepDown(g){if(!isHost||mode!='online')return;let nr=null;
  try{nr=await mkRoom(code,false,g)}catch(e){return}
  if(!isHost||!room){try{nr.leave()}catch(e){}return}
  const old=room;clearTimeout(bt);room=nr;isHost=false;try{old.leave()}catch(e){}
- seen={};lats={};onl=new Set();lastPr=0;lastPo=0;myLat=null;pst={};syncT={};
+ seenT=Date.now();seen={};lats={};onl=new Set();lastPr=0;lastPo=0;myLat=null;pst={};syncT={};
  wire(nr);migReset();joinAt=Date.now();hpT=Date.now();
  toast(L('अर्को होस्ट भेटियो — उसैसँग जोडिँदै','Another host was found — joining it'));render()}
+/* ---- follow-to-change-host (lobby): when every online player follows the same person, that person becomes host ---- */
+const fwHum=()=>S.seats.filter(x=>x.c&&!x.b);
+function fwSet(t){if(!S||S.ph!='lobby'||!okId(t)||t==cid)return;const nt=(S.fw||{})[cid]==t?'':t;if(isHost){S.fw=S.fw||{};if(nt)S.fw[cid]=nt;else delete S.fw[cid];post();fwCheck()}else if(room)room.emit('fw',{cid,t:nt})}
+function fwCheck(){if(!isHost||!S||S.ph!='lobby'||mode!='online'||code=='P2P'||!canMig()||mig.on)return;const fw=S.fw||{},hs=fwHum().filter(x=>x.c==cid||isOn(x.c));if(hs.length<2)return;const t=hs.find(x=>x.c!=cid&&hs.every(y=>y.c==x.c||fw[y.c]==x.c));if(t)handOver(t.c)}
+function handOver(n){if(!isHost||!room||mig.on)return;const g=Math.max(S.hg||0,room.gen||0)+1;S.fw={};nhTo=n;post();try{room.emit('hmv',{to:n,g})}catch(e){}toast('👑 '+L('होस्ट बदलिँदै…','Changing host…'));setTimeout(()=>{if(isHost)stepDown(g)},900)}
 </script>
 <script>
 /* js/icons.js - line-icon set that replaces emoji */
@@ -911,13 +942,14 @@ let hdr=0;
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;if((b.dataset.a=='card'||b.dataset.a=='dk'||b.dataset.a=='dc')&&Date.now()-noClick<350)return;const a=b.dataset.a,v=b.dataset.v;
  const n=$('#nm');if(n)nm=n.value.trim()||'Player';const n2=$('#nm2');if(n2)nm=n2.value.trim()||'Player';const c=$('#cd');if(c&&c.value.trim())code=c.value.trim();
  if(a=='cnt'||a=='go'||a=='host'||a=='join'){try{document.documentElement.requestFullscreen().then(()=>screen.orientation.lock('landscape')).catch(()=>{})}catch(e){}}
- if(a=='learn'||a=='rank'||a=='set'){modal=a}else if(a=='closem'){modal='';PF.name=nm;savePF()}
+ if(a=='learn'||a=='rank'||a=='set'||a=='hist'){modal=a}else if(a=='closem'){modal='';PF.name=nm;savePF()}
  else if(a=='opt'){const st=CFG(),k=b.dataset.k;st[k]=(k=='av'||k=='lang')?v:+v;PF.st=st;savePF()}
  else if(a=='back'||a=='home'){backReq(a=='home');return}
  else if(a=='setp'){V='settings'}
  else if(a=='upd'){checkUpd(true);return}
  else if(a=='closes'){closeSet();return}
  else if(a=='rules'){modal='rules'}
+ else if(a=='hclr'){if(confirm(L('इतिहास मेटाउने?','Clear the history?'))){try{localStorage.removeItem('mrhist')}catch(e){}}}
  else if(a=='rl'){setRule(b.dataset.k,+v)}
  else if(a=='exit'){ask(L('एपबाट बाहिर निस्कने?','Exit the app?'),exitApp);return}
  else if(a=='single'){mode='solo';isHost=true;V='count'}
@@ -939,6 +971,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b
  else if(a=='rn'){const i=+v,o=S&&S.seats&&S.seats[i];if(!o||!o.b||!isHost)return;const x=(prompt(L('बोटको नयाँ नाम (धेरैमा १० अक्षर)','New bot name (max 10 letters)'),o.n)||'').trim().replace(/[<>&:]/g,'').slice(0,10);if(!x||x==o.n)return;if(S.seats.some((q,j)=>j!=i&&q.n==x))return alert(L('यो नाम पहिल्यै प्रयोगमा छ','This name is already in use'));const old=o.n;S.lg=(S.lg||[]).map(l=>l.startsWith(old+': ')?x+l.slice(old.length):l);o.n=x;post();return}
  else if(a=='addb'){if(S.seats.length<5){S.seats.push({n:nmFor(S.seats.length,S.seats.map(x=>x.n)),b:1});post();return}}
  else if(a=='cc'){if(isHost&&S&&S.ph=='lobby'){const i=CCS.indexOf(S.cc||100);S.cc=CCS[Math.max(0,Math.min(CCS.length-1,(i<0?1:i)+ +v))];post()}return}
+ else if(a=='fw'){fwSet(v);return}
  else if(a=='kick'){if(isHost&&S&&S.ph=='lobby'){const i=+v,x=S.seats[i];if(i!=hostIdx()&&x){S.seats.splice(i,1);if(x.c)S.kk=(S.kk||[]).concat(x.c);post()}}return}
  else if(a=='rdy'){if(room&&!isHost)room.emit('rdy',{cid});return}
  else if(a=='csend'){const el=$('#cti');if(el){chSend(el.value);el.value=''}return}
